@@ -725,7 +725,7 @@
               </div>
             </div>
             <div class="mt-2.5 text-[11px] text-stone-400 flex items-center justify-between">
-              <span>Soft painterly 3D animation, warm lighting, cinematic depth.</span>
+              <span>2D hand-painted storybook cartoon, clean outlines, warm lighting.</span>
               <span id="visualLockCount">0 chars</span>
             </div>
           </div>
@@ -1121,6 +1121,7 @@ village-harmony-prompt-studio/
 
 CHANNEL & CANONICAL IDENTITY:
 Village Harmony is a single, continuous cinematic universe focusing on a fixed recurring family and their peaceful hill-village life:
+- Art Style (applies to every character and place): 2D hand-painted storybook cartoon, matching the channel reference art. Clean soft dark-brown outlines, smooth cel shading with gentle painterly gradients, large expressive dark eyes, soft rounded facial features, simple clean shapes, simplified flat-colored clothing patterns. Never photorealistic, never live-action, never 3D CGI.
 - Gauri (Mother / Homemaker & Harvest): Early 30s, medium-brown skin, gentle oval face, dark almond eyes, center-parted long black hair tied into a low bun, small red bindi, gold earrings, thin gold necklace, red/gold bangles, peach-pink floral cotton saree. Gentle, caring and hardworking.
 - Raghav (Father / Village Craftsman & Farmer): Mid 30s, medium-brown skin, short thick black hair, neatly trimmed full black beard and mustache, dark brown eyes, off-white cotton kurta, dark-brown dhoti/pajama, brown sandals. Calm, patient and hardworking.
 - Aru (Son / 7-Year-Old Explorer): 7-year-old boy, medium-brown skin, round innocent face, large dark-brown eyes, short slightly messy black hair, light sky-blue T-shirt, dark-green shorts, brown sandals. Playful, curious and affectionate.
@@ -1143,7 +1144,7 @@ F) Continuity rules and recurring props
 G) YouTube-safe content rules
 
 CHARACTER CONSISTENCY:
-Give every recurring character a fixed identity. Lock age, skin tone, face shape, eyes, hairstyle, body proportions, clothing colors/materials, jewelry/accessories, footwear and personality.
+Give every recurring character a fixed identity. Lock art style (2D storybook cartoon), age, skin tone, face shape, eyes, hairstyle, body proportions, clothing colors/materials, jewelry/accessories, footwear and personality.
 Once established, these details must never change unless the user explicitly asks for a redesign.
 Never randomly change clothing, hairstyle, age, face, body proportions or accessories between scenes. Characters must remain visually recognizable from scene to scene.
 
@@ -1154,7 +1155,7 @@ Keep season, weather, architecture, vegetation, lighting logic and overall atmos
 A place must still look like the same place when revisited from a different camera angle.
 
 VISUAL STYLE:
-High-quality cinematic 3D animated Indian/South Asian rural family-film aesthetics; soft painterly textures; warm natural lighting; realistic cloth, hair, foliage and environmental movement; expressive but natural facial animation; cinematic depth of field; smooth camera motion; coherent geography; natural proportions; no modern urban elements unless required by the outline.
+2D hand-painted storybook cartoon illustration style, like a warm Indian picture book brought to life; clean soft dark-brown outlines; smooth cel shading with gentle painterly gradients; warm earthy color palette; soft watercolor-textured backgrounds with gently blurred depth; slightly stylized cartoon characters with large expressive dark eyes, soft rounded facial features and simple clean shapes; simple flat-colored clothing with light folds and simplified patterns; warm golden natural lighting; smooth, gentle 2D animation of cloth, hair, foliage and water; cinematic framing and smooth camera motion; coherent geography; no photorealism, no live-action look, no realistic skin texture, no 3D CGI rendering; no modern urban elements unless required by the outline.
 Use calm, readable compositions and purposeful camera movement.
 
 STORY LOGIC:
@@ -1183,7 +1184,7 @@ For EVERY SCENE provide:
    SCENE / PLOT: [Specific shot beat]
    CHARACTER CONSISTENCY LOCK: [Extract exact locked descriptions of characters present in this scene]
    BACKGROUND / WORLD CONSISTENCY LOCK: [Specific village location details]
-   VISUAL STYLE / CAMERA LOCK: [Cinematic 3D animation, lighting, camera framing and duration]
+   VISUAL STYLE / CAMERA LOCK: [2D hand-painted storybook cartoon style, lighting, camera framing and duration]
    AUDIO / ASMR: [Specific Foley, voice script cue, and natural sounds]
    YOUTUBE-SAFE CONTENT LOCK: [Standard safety rules]
    \`\`\`
@@ -1257,11 +1258,12 @@ Keep the scene family-friendly and non-graphic. Do not add violence, blood, gore
 Gauri (Mother) — early 30s, medium-brown skin, gentle oval face, dark almond eyes, center-parted long black hair tied into a low bun, small red bindi, gold earrings, thin gold necklace, red/gold bangles, peach-pink floral cotton saree. Gentle, caring and hardworking.
 Raghav (Father) — mid 30s, medium-brown skin, short thick black hair, neatly trimmed full black beard and mustache, dark brown eyes, off-white cotton kurta, dark-brown dhoti/pajama, brown sandals. Calm, patient and hardworking.
 Aru (Son) — 7-year-old boy, medium-brown skin, round innocent face, large dark-brown eyes, short slightly messy black hair, light sky-blue T-shirt, dark-green shorts, brown sandals. Playful, curious and affectionate.
+Draw every character in the same 2D hand-painted storybook cartoon style: clean soft outlines, smooth cel shading, large expressive eyes, soft rounded features, simplified clothing patterns. Never photorealistic or 3D CGI.
 Keep exact faces, hairstyles, clothing, jewelry, ages and body proportions in every scene.`,
       backgroundLock: `BACKGROUND / WORLD CONSISTENCY LOCK:
 Peaceful tropical South Asian hill village in spring. Mud houses with thatched roofs, bamboo fences, stone paths, green hills, coconut/banana/betel-nut trees, wild grass, vegetable gardens, flowing clear stream and distant misty hills. Keep the same family home, nearby garden, hillside patch, stream and paths in consistent relative positions. Warm natural sunlight, soft haze, traditional baskets, clay pots and woven mats. No modern urban elements.`,
       visualLock: `VISUAL STYLE LOCK:
-High-quality cinematic 3D animated Indian/South Asian rural family film. Soft painterly textures, warm natural lighting, realistic cloth, hair, foliage and environmental movement, expressive but natural facial animation, cinematic depth of field, smooth camera movement, natural proportions, coherent geography, no modern urban elements.`,
+2D hand-painted storybook cartoon of Indian/South Asian rural family life. Clean soft dark-brown outlines, smooth cel shading with gentle painterly gradients, warm earthy palette, soft watercolor-textured backgrounds, large expressive eyes and soft rounded cartoon features, simplified flat-colored clothing, warm golden natural lighting, gentle 2D animation of cloth, hair, foliage and water, smooth camera movement, coherent geography. No photorealism, no live-action look, no 3D CGI rendering, no modern urban elements.`,
       audioLock: `AUDIO / ASMR LOCK:
 Naturalistic immersive rural ASMR. Soft realistic environmental sounds. Close detailed Foley matching visible actions. Peaceful and soothing. Crisp nearby birds, flowing river, gentle wind, leaves, insects and subtle village ambience when appropriate. No loud music, exaggerated sound effects or sudden volume changes. Some scenes may be mostly natural ambience with little or no music.`
     };
@@ -1621,6 +1623,17 @@ The clip must look like the exact same Village Harmony world and recurring chara
       try {
         saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
       } catch (e) {}
+
+      // Upgrade locks saved before the 2D storybook cartoon style lock (they pushed generations toward realism)
+      if (saved.visualLock && saved.visualLock.includes('High-quality cinematic 3D animated')) {
+        delete saved.visualLock;
+      }
+      if (saved.characterLock && !saved.characterLock.includes('storybook cartoon')) {
+        const styleLine = DEFAULT_LOCKS.characterLock.split('\n').find(l => l.startsWith('Draw every character'));
+        saved.characterLock = saved.characterLock.includes('Keep exact faces')
+          ? saved.characterLock.replace(/^Keep exact faces/m, `${styleLine}\nKeep exact faces`)
+          : `${saved.characterLock}\n${styleLine}`;
+      }
 
       ['characterLock', 'backgroundLock', 'visualLock', 'audioLock'].forEach(id => {
         const el = document.getElementById(id);
