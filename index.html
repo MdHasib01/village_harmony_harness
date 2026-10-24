@@ -638,12 +638,21 @@
                 </div>
               </div>
 
+              <!-- Gauri Outfit Picker (shared selection with Master Prompt tab) -->
+              <div class="mb-3 p-2.5 rounded-xl bg-white/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-700/80">
+                <div class="flex flex-wrap items-center justify-between gap-1 mb-2 text-[11px]">
+                  <span class="font-bold text-stone-700 dark:text-stone-300">👗 Gauri's Outfit <span class="font-normal text-stone-400">· synced with Master Prompt</span></span>
+                  <span id="lock-outfit-label" class="font-bold text-rose-600 dark:text-rose-400">V6 Original Peach-Pink Floral</span>
+                </div>
+                <div class="grid grid-cols-6 gap-1.5" id="lock-gauri-outfit-grid"></div>
+              </div>
+
               <div class="relative">
                 <textarea id="characterLock" rows="7" readonly placeholder="Paste exact recurring character identities (Raghav, Gauri, Aru)..." class="w-full text-xs p-3.5 rounded-xl bg-stone-100/80 dark:bg-stone-900/80 border border-stone-200 dark:border-stone-700/80 text-stone-800 dark:text-stone-200 focus:outline-none transition-all font-mono leading-relaxed select-text cursor-default"></textarea>
               </div>
             </div>
             <div class="mt-2.5 text-[11px] text-stone-400 flex items-center justify-between">
-              <span>Canonical family: Raghav, Gauri, Aru (Protected from accidental changes)</span>
+              <span>Canonical family: Raghav, Gauri (<span id="lock-outfit-footer">V6 Original</span>), Aru (Protected from accidental changes)</span>
               <span id="charLockCount">0 chars</span>
             </div>
           </div>
@@ -1324,23 +1333,37 @@ Naturalistic immersive rural ASMR. Soft realistic environmental sounds. Close de
       if (outfitTag) outfitTag.textContent = `Gauri: V${outfit.version} ${outfit.short}`;
       const outfitBadge = document.getElementById('active-outfit-badge');
       if (outfitBadge) outfitBadge.textContent = `Active: V${outfit.version} ${outfit.name}`;
+      const lockLabel = document.getElementById('lock-outfit-label');
+      if (lockLabel) lockLabel.textContent = `V${outfit.version} ${outfit.name}`;
+      const lockFooter = document.getElementById('lock-outfit-footer');
+      if (lockFooter) lockFooter.textContent = `V${outfit.version} ${outfit.short}`;
     }
 
     function getGauriOutfit() {
       return GAURI_OUTFITS.find(o => o.id === currentGauriOutfit) || GAURI_OUTFITS[GAURI_OUTFITS.length - 1];
     }
 
+    // Renders both outfit pickers (Master Prompt tab + Character Lock card) from the shared selection
     function renderGauriOutfits() {
+      const stateFor = o => o.id === currentGauriOutfit
+        ? 'active border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-sm'
+        : 'border-stone-200 dark:border-stone-800 bg-white/60 dark:bg-stone-800/40';
+
+      const lockGrid = document.getElementById('lock-gauri-outfit-grid');
+      if (lockGrid) {
+        lockGrid.innerHTML = GAURI_OUTFITS.map(o => `
+          <div onclick="selectGauriOutfit('${o.id}')" data-outfit-id="${o.id}" title="V${o.version} ${o.name}" class="gauri-outfit-option group relative cursor-pointer rounded-lg border-2 hover:border-brand-500/60 overflow-hidden transition-all ${stateFor(o)}">
+            <img src="${o.image}" alt="Gauri — ${o.name}" loading="lazy" class="w-full aspect-square object-cover object-left group-hover:scale-105 transition-transform duration-300" />
+            <span class="absolute top-0.5 left-0.5 px-1 rounded text-[9px] font-bold bg-stone-900/75 text-white">V${o.version}</span>
+          </div>`).join('');
+      }
+
       const grid = document.getElementById('gauri-outfit-grid');
       if (!grid) return;
       grid.innerHTML = GAURI_OUTFITS.map(o => {
-        const active = o.id === currentGauriOutfit;
-        const stateClasses = active
-          ? 'active border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-sm'
-          : 'border-stone-200 dark:border-stone-800 bg-white/60 dark:bg-stone-800/40';
         const swatches = o.swatches.map(c => `<span class="w-3 h-3 rounded-full border border-black/10 dark:border-white/20" style="background:${c}"></span>`).join('');
         return `
-          <div onclick="selectGauriOutfit('${o.id}', this)" class="gauri-outfit-option group cursor-pointer rounded-xl border-2 hover:border-brand-500/60 overflow-hidden transition-all ${stateClasses}">
+          <div onclick="selectGauriOutfit('${o.id}')" data-outfit-id="${o.id}" class="gauri-outfit-option group cursor-pointer rounded-xl border-2 hover:border-brand-500/60 overflow-hidden transition-all ${stateFor(o)}">
             <div class="relative aspect-[3/2] bg-stone-100 dark:bg-stone-900 overflow-hidden">
               <img src="${o.image}" alt="Gauri — ${o.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
               <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-stone-900/75 text-white">V${o.version}</span>
@@ -1357,23 +1380,54 @@ Naturalistic immersive rural ASMR. Soft realistic environmental sounds. Close de
       }).join('');
     }
 
-    function selectGauriOutfit(id, cardEl) {
+    // Single entry point for both pickers: keeps the Master Prompt and Character Lock on the same version
+    function selectGauriOutfit(id, { silent = false } = {}) {
+      if (!GAURI_OUTFITS.some(o => o.id === id)) return;
       currentGauriOutfit = id;
       try { localStorage.setItem(GAURI_OUTFIT_KEY, id); } catch (e) {}
 
-      document.querySelectorAll('.gauri-outfit-option').forEach(el => {
-        el.classList.remove('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20', 'shadow-sm');
-        el.classList.add('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
-      });
+      renderGauriOutfits();
+      updateMasterPromptDisplay();
+      syncCharacterLockOutfit({ silent });
+      if (!silent) {
+        const outfit = getGauriOutfit();
+        showToast(`Gauri set to V${outfit.version} ${outfit.name}. Master Prompt and Character Lock updated`);
+      }
+    }
 
-      if (cardEl) {
-        cardEl.classList.remove('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
-        cardEl.classList.add('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20', 'shadow-sm');
+    // Finds which outfit's saree text appears in a lock text (longest first so V5 isn't mistaken for V6)
+    function detectGauriOutfit(text) {
+      const bySareeLength = [...GAURI_OUTFITS].sort((a, b) => b.saree.length - a.saree.length);
+      return bySareeLength.find(o => text.includes(o.saree)) || null;
+    }
+
+    // Rewrites only Gauri's saree text in the Character Lock so it matches the selected outfit
+    function syncCharacterLockOutfit({ silent = false } = {}) {
+      const ta = document.getElementById('characterLock');
+      if (!ta) return;
+      const outfit = getGauriOutfit();
+      const text = ta.value;
+      const found = detectGauriOutfit(text);
+      let updated;
+
+      if (found) {
+        updated = text.replace(found.saree, outfit.saree);
+      } else {
+        const gauriLine = text.split('\n').find(l => /^\s*Gauri\b/.test(l));
+        if (!gauriLine) {
+          if (!silent) showToast('No Gauri line found in the Character Lock. Add her description to apply the outfit', 'error');
+          return;
+        }
+        const canonicalLine = getDefaultLock('characterLock').split('\n').find(l => l.startsWith('Gauri'));
+        updated = text.replace(gauriLine, canonicalLine);
+        if (!silent) showToast(`Gauri's line in the Character Lock was refreshed to match V${outfit.version}`);
       }
 
-      updateMasterPromptDisplay();
-      const outfit = getGauriOutfit();
-      showToast(`Gauri's outfit set to V${outfit.version} ${outfit.name}`);
+      if (updated !== text) {
+        ta.value = updated;
+        updateLockCharCount('characterLock');
+        saveLocksAuto();
+      }
     }
 
     function selectVoiceMode(mode, cardEl) {
@@ -1556,18 +1610,22 @@ The clip must look like the exact same Village Harmony world and recurring chara
     /* ==========================================================================
        4. CONSISTENCY LOCKS: EDIT PROTECTION & RESET DEFAULTS
        ========================================================================== */
+    // Default lock text; the character lock uses the currently selected Gauri outfit
+    function getDefaultLock(id) {
+      const text = DEFAULT_LOCKS[id] || '';
+      return id === 'characterLock' ? text.replace(GAURI_ORIGINAL_SAREE, getGauriOutfit().saree) : text;
+    }
+
     function loadLocks() {
       let saved = {};
       try {
         saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
       } catch (e) {}
-      
-      const config = { ...DEFAULT_LOCKS, ...saved };
-      
+
       ['characterLock', 'backgroundLock', 'visualLock', 'audioLock'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-          el.value = config[id] || DEFAULT_LOCKS[id] || '';
+          el.value = saved[id] || getDefaultLock(id);
           updateLockCharCount(id);
           // Set to readonly by default
           el.setAttribute('readonly', 'true');
@@ -1624,7 +1682,7 @@ The clip must look like the exact same Village Harmony world and recurring chara
     function resetLockToDefault(lockId) {
       if (DEFAULT_LOCKS[lockId]) {
         const ta = document.getElementById(lockId);
-        ta.value = DEFAULT_LOCKS[lockId];
+        ta.value = getDefaultLock(lockId);
         updateLockCharCount(lockId);
         saveLocksAuto();
         
@@ -1686,6 +1744,7 @@ The clip must look like the exact same Village Harmony world and recurring chara
         exportedAt: new Date().toISOString(),
         targetDuration: currentDurationLength,
         voiceMode: currentVoiceMode,
+        gauriOutfit: currentGauriOutfit,
         locks: {
           characterLock: document.getElementById('characterLock').value,
           backgroundLock: document.getElementById('backgroundLock').value,
@@ -1720,6 +1779,11 @@ The clip must look like the exact same Village Harmony world and recurring chara
             const targetCard = document.querySelector(`.voice-option[onclick*="'${currentVoiceMode}'"]`);
             if (targetCard) selectVoiceMode(currentVoiceMode, targetCard);
           }
+          // Restore Gauri's outfit (or detect it from the imported lock text) and sync both tabs
+          const importedOutfit = GAURI_OUTFITS.some(o => o.id === config.gauriOutfit)
+            ? config.gauriOutfit
+            : (detectGauriOutfit(document.getElementById('characterLock').value) || {}).id;
+          if (importedOutfit) selectGauriOutfit(importedOutfit, { silent: true });
           updateMasterPromptDisplay();
           saveLocksAuto();
           showToast('Project configuration imported successfully!');
@@ -2011,11 +2075,12 @@ The clip must look like the exact same Village Harmony world and recurring chara
     // Initialization
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
-      loadLocks();
       try {
         const savedOutfit = localStorage.getItem(GAURI_OUTFIT_KEY);
         if (GAURI_OUTFITS.some(o => o.id === savedOutfit)) currentGauriOutfit = savedOutfit;
       } catch (e) {}
+      loadLocks();
+      syncCharacterLockOutfit({ silent: true });
       renderGauriOutfits();
       updateMasterPromptDisplay();
       renderCustomAssets();
