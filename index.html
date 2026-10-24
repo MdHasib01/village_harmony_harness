@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#b4752c" />
+  <title>Village Harmony — AI Video Prompt Studio</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fdf8f0',
+              100: '#faefdc',
+              200: '#f4dcba',
+              300: '#ecc28e',
+              400: '#e1a25f',
+              500: '#b4752c',
+              600: '#9b5d20',
+              700: '#7a461b',
+              800: '#5e371a',
+              900: '#482b17',
+            },
+            earth: {
+              50: '#f6f7f2',
+              100: '#ebede0',
+              200: '#d7dbc3',
+              300: '#bcc39f',
+              400: '#9da77b',
+              500: '#6f7e4c',
+              600: '#566439',
+              700: '#434e2f',
+              800: '#363e27',
+              900: '#2c3321',
+            },
+            surface: {
+              light: '#fbf8f3',
+              paper: '#ffffff',
+              dark: '#181411',
+              darkcard: '#221c17',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            display: ['"Outfit"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d7cdbe; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #3d332b; }
+    ::-webkit-scrollbar-thumb:hover { background: #b4752c; }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .dark .glass-card {
+      background: rgba(34, 28, 23, 0.88);
+    }
+  </style>
+</head>
+<body class="bg-surface-light dark:bg-surface-dark text-stone-800 dark:text-stone-100 font-sans antialiased min-h-screen transition-colors duration-200">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Image Lightbox Modal -->
+  <div id="image-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300">
+    <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+      <button onclick="closeModal()" class="absolute -top-12 right-0 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+      <img id="modal-img" src="" alt="Enlarged Reference" class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl border border-white/10" />
+      <div class="mt-4 text-center">
+        <h3 id="modal-title" class="text-white text-lg font-display font-bold"></h3>
+        <p id="modal-desc" class="text-stone-400 text-sm mt-1"></p>
+        <div class="mt-3 flex gap-2 justify-center">
+          <a id="modal-download" href="" download class="px-4 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Download Original
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+    
+    <!-- Header / Brand -->
+    <header class="mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-200/80 dark:border-stone-800">
+        <div class="flex items-center gap-4">
+          <div class="relative group">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-brand-500/10 border-2 border-brand-500/40 p-1 flex items-center justify-center shadow-lg shadow-brand-500/10 transition-transform group-hover:scale-105">
+              <img src="assets/logo.png" alt="Village Harmony Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-3xl\'>🌿</span>';" class="w-full h-full object-cover rounded-xl" />
+            </div>
+            <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-stone-900 rounded-full"></span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h1 class="text-2xl sm:text-3xl font-display font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+                Village Harmony
+              </h1>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-earth-100 text-earth-800 dark:bg-earth-900/60 dark:text-earth-200 border border-earth-300 dark:border-earth-700">
+                Studio v2.0
+              </span>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 font-medium">
+              Cinematic Story • Canonical Characters • Google Flow & Veo Prompt Studio
+            </p>
+          </div>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="flex items-center gap-3 self-end sm:self-auto">
+          <button id="theme-toggle" onclick="toggleTheme()" class="p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white/70 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-all shadow-sm" title="Toggle Light/Dark Theme">
+            <svg id="theme-icon-dark" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="theme-icon-light" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          </button>
+          
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span>YouTube & Flow Ready</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex gap-2 p-1.5 bg-stone-100/80 dark:bg-stone-800/60 backdrop-blur rounded-2xl mt-6 border border-stone-200/60 dark:border-stone-700/60 overflow-x-auto shadow-inner">
+        <button onclick="switchTab('master')" data-tab-btn="master" class="tab-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-sm">
+          <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+          Master Story Director
+        </button>
+        <button onclick="switchTab('scene')" data-tab-btn="scene" class="tab-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white">
+          <svg class="w-4 h-4 text-earth-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+          Scene Prompt Builder
+        </button>
+        <button onclick="switchTab('locks')" data-tab-btn="locks" class="tab-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white">
+          <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          Consistency Locks
+          <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">Protected</span>
+        </button>
+        <button onclick="switchTab('assets')" data-tab-btn="assets" class="tab-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white">
+          <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          Character & Media Assets
+          <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-300">7 Ready (5 Visual + 2 Audio)</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- TAB 1: MASTER PROMPT -->
+    <main id="tab-master" class="tab-content block space-y-6">
+      
+      <!-- Duration Selector Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold text-sm">⏱️</span>
+              <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+                Target Story Duration
+              </h2>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Select how long the entire story will be. Platform recommendations are shown beside each option for guidance.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 self-start md:self-auto">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Only duration length is sent in prompt</span>
+          </div>
+        </div>
+
+        <!-- Breakpoint Options Grid -->
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="duration-grid">
+          
+          <!-- Option: 30 - 60s -->
+          <div onclick="selectDuration('30–60 seconds', this)" class="duration-option group cursor-pointer p-4 rounded-xl border-2 border-stone-200 dark:border-stone-800 hover:border-brand-500/60 bg-white/60 dark:bg-stone-800/40 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">Micro Short</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">30–60s</span>
+            </div>
+            <div class="mt-2 text-base font-bold text-stone-800 dark:text-stone-100">30 – 60 Seconds</div>
+            <div class="mt-2 text-xs text-stone-500 dark:text-stone-400 leading-relaxed flex items-start gap-1.5 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <span class="text-brand-500 font-bold">Best for:</span>
+              <span>YouTube Shorts, TikTok, Instagram Reels</span>
+            </div>
+          </div>
+
+          <!-- Option: 1 - 2 min -->
+          <div onclick="selectDuration('1–2 minutes', this)" class="duration-option group cursor-pointer p-4 rounded-xl border-2 border-stone-200 dark:border-stone-800 hover:border-brand-500/60 bg-white/60 dark:bg-stone-800/40 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">Extended Short</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">1–2 min</span>
+            </div>
+            <div class="mt-2 text-base font-bold text-stone-800 dark:text-stone-100">1 – 2 Minutes</div>
+            <div class="mt-2 text-xs text-stone-500 dark:text-stone-400 leading-relaxed flex items-start gap-1.5 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <span class="text-brand-500 font-bold">Best for:</span>
+              <span>Extended YouTube Shorts, Facebook Reels</span>
+            </div>
+          </div>
+
+          <!-- Option: 2 - 3 min -->
+          <div onclick="selectDuration('2–3 minutes', this)" class="duration-option group cursor-pointer p-4 rounded-xl border-2 border-stone-200 dark:border-stone-800 hover:border-brand-500/60 bg-white/60 dark:bg-stone-800/40 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">Mini Story</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">2–3 min</span>
+            </div>
+            <div class="mt-2 text-base font-bold text-stone-800 dark:text-stone-100">2 – 3 Minutes</div>
+            <div class="mt-2 text-xs text-stone-500 dark:text-stone-400 leading-relaxed flex items-start gap-1.5 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <span class="text-brand-500 font-bold">Best for:</span>
+              <span>Facebook Video, LinkedIn, Quick YouTube Stories</span>
+            </div>
+          </div>
+
+          <!-- Option: 3 - 5 min (Default) -->
+          <div onclick="selectDuration('3–5 minutes', this)" class="duration-option active group cursor-pointer p-4 rounded-xl border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 shadow-sm transition-all ring-2 ring-brand-500/20">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">Standard Episode (Recommended)</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-brand-500 text-white">3–5 min</span>
+            </div>
+            <div class="mt-2 text-base font-bold text-stone-900 dark:text-white">3 – 5 Minutes</div>
+            <div class="mt-2 text-xs text-stone-600 dark:text-stone-300 leading-relaxed flex items-start gap-1.5 pt-2 border-t border-brand-200 dark:border-brand-900">
+              <span class="text-brand-600 dark:text-brand-400 font-bold">Best for:</span>
+              <span>Standard YouTube Narrative Video (Sweet spot for village family storytelling)</span>
+            </div>
+          </div>
+
+          <!-- Option: 5 - 8 min -->
+          <div onclick="selectDuration('5–8 minutes', this)" class="duration-option group cursor-pointer p-4 rounded-xl border-2 border-stone-200 dark:border-stone-800 hover:border-brand-500/60 bg-white/60 dark:bg-stone-800/40 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">In-Depth Story</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">5–8 min</span>
+            </div>
+            <div class="mt-2 text-base font-bold text-stone-800 dark:text-stone-100">5 – 8 Minutes</div>
+            <div class="mt-2 text-xs text-stone-500 dark:text-stone-400 leading-relaxed flex items-start gap-1.5 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <span class="text-brand-500 font-bold">Best for:</span>
+              <span>In-depth YouTube Stories, Episodes with Cooking/Harvesting focus</span>
+            </div>
+          </div>
+
+          <!-- Option: 8 - 10+ min -->
+          <div onclick="selectDuration('8–10+ minutes', this)" class="duration-option group cursor-pointer p-4 rounded-xl border-2 border-stone-200 dark:border-stone-800 hover:border-brand-500/60 bg-white/60 dark:bg-stone-800/40 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">Cinematic Longform</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">8–10+ min</span>
+            </div>
+            <div class="mt-2 text-base font-bold text-stone-800 dark:text-stone-100">8 – 10+ Minutes</div>
+            <div class="mt-2 text-xs text-stone-500 dark:text-stone-400 leading-relaxed flex items-start gap-1.5 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <span class="text-brand-500 font-bold">Best for:</span>
+              <span>Long-form Cinematic YouTube Video (High watch time & monetization)</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Custom Duration Option -->
+        <div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800 flex flex-col sm:flex-row sm:items-center gap-3">
+          <label class="text-xs font-bold text-stone-600 dark:text-stone-400 shrink-0">Or Enter Custom Story Length:</label>
+          <div class="relative flex-1 max-w-sm">
+            <input type="text" id="custom-duration-input" placeholder="e.g. 4 minutes, 12 minutes" oninput="setCustomDuration(this.value)" class="w-full text-xs px-3.5 py-2 rounded-xl bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all" />
+          </div>
+          <span class="text-xs text-stone-400">Current target: <strong id="active-duration-badge" class="text-brand-600 dark:text-brand-400 font-bold">3–5 minutes</strong></span>
+        </div>
+      </section>
+
+      <!-- Voice & Script Generation Mode Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-earth-500/10 text-earth-600 dark:text-earth-400 font-bold text-sm">🎙️</span>
+              <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+                Voice & Script Generation Mode
+              </h2>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Select your voiceover / narration preference. The AI director will generate pure natural ASMR or complete dialogue & narration scripts in your chosen language for every scene.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-earth-50 dark:bg-earth-950/40 text-earth-700 dark:text-earth-300 rounded-lg border border-earth-200/80 dark:border-earth-800/60 self-start md:self-auto">
+            <span id="active-voice-badge" class="font-bold">Active: Pure ASMR (No Voice)</span>
+          </div>
+        </div>
+
+        <!-- Voice Options Grid -->
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" id="voice-mode-grid">
+          
+          <!-- Option 1: Only ASMR -->
+          <div onclick="selectVoiceMode('asmr', this)" class="voice-option active group cursor-pointer p-4 rounded-xl border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 shadow-sm transition-all ring-2 ring-brand-500/20 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xl">🍃</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-500 text-white">No Spoken Voice</span>
+              </div>
+              <div class="mt-3 text-sm font-bold text-stone-900 dark:text-white">Only Natural ASMR</div>
+              <p class="mt-1 text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                Pure environmental ambience, breeze, flowing stream, cooking sounds & tactile rural Foley. No spoken voiceover or dialogue.
+              </p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-brand-200 dark:border-brand-900/60 text-[11px] font-semibold text-brand-700 dark:text-brand-300">
+              Silent peaceful storytelling
+            </div>
+          </div>
+
+          <!-- Option 2: Bangla -->
+          <div onclick="selectVoiceMode('bangla', this)" class="voice-option group cursor-pointer p-4 rounded-xl border-2 border-stone-200 dark:border-stone-800 hover:border-brand-500/60 bg-white/60 dark:bg-stone-800/40 transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xl">🇧🇩</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">বাংলা স্ক্রিপ্ট</span>
+              </div>
+              <div class="mt-3 text-sm font-bold text-stone-800 dark:text-stone-100">Bangla Voice / Script</div>
+              <p class="mt-1 text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                Generates authentic Bengali dialogue (for Gauri, Raghav, Aru) and heartwarming rural Bengali voiceover narration per scene.
+              </p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-stone-100 dark:border-stone-800 text-[11px] font-semibold text-stone-500 dark:text-stone-400">
+              Regional Bengali dialogue & narration
+            </div>
+          </div>
+
+          <!-- Option 3: Hindi -->
+          <div onclick="selectVoiceMode('hindi', this)" class="voice-option group cursor-pointer p-4 rounded-xl border-2 border-stone-200 dark:border-stone-800 hover:border-brand-500/60 bg-white/60 dark:bg-stone-800/40 transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xl">🇮🇳</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">हिंदी स्क्रिप्ट</span>
+              </div>
+              <div class="mt-3 text-sm font-bold text-stone-800 dark:text-stone-100">Hindi Voice / Script</div>
+              <p class="mt-1 text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                Generates gentle, respectful Hindi dialogue and storytelling narration per scene matching rural South Asian village emotions.
+              </p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-stone-100 dark:border-stone-800 text-[11px] font-semibold text-stone-500 dark:text-stone-400">
+              Mainstream Hindi YouTube audience
+            </div>
+          </div>
+
+          <!-- Option 4: English -->
+          <div onclick="selectVoiceMode('english', this)" class="voice-option group cursor-pointer p-4 rounded-xl border-2 border-stone-200 dark:border-stone-800 hover:border-brand-500/60 bg-white/60 dark:bg-stone-800/40 transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xl">🌐</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">English Voice</span>
+              </div>
+              <div class="mt-3 text-sm font-bold text-stone-800 dark:text-stone-100">English Voice / Script</div>
+              <p class="mt-1 text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                Generates poetic, heartwarming English narration and character dialogue per scene with emotional delivery cues for global viewers.
+              </p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-stone-100 dark:border-stone-800 text-[11px] font-semibold text-stone-500 dark:text-stone-400">
+              Global & international reach
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Gauri Outfit Selector Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-sm">👗</span>
+              <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+                Gauri's Outfit
+              </h2>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Pick Gauri's saree. The master prompt switches to the matching version. Only the saree text in Gauri's line changes.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg border border-rose-200/80 dark:border-rose-800/60 self-start md:self-auto">
+            <span id="active-outfit-badge" class="font-bold">Active: Original Peach-Pink Floral</span>
+          </div>
+        </div>
+
+        <!-- Outfit Options Grid (rendered by renderGauriOutfits) -->
+        <div class="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="gauri-outfit-grid"></div>
+      </section>
+
+      <!-- Master Prompt Output Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <span>Master Story Director Prompt</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-brand-100 text-brand-800 dark:bg-brand-900/50 dark:text-brand-300">Single Channel Edition</span>
+            </h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+              Copy this once into a fresh AI chat. It will construct your story bible and output a copy-ready prompt for every scene using your canonical character locks.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="copyMasterPrompt()" id="copy-master-btn" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+              <span>Copy Master Prompt</span>
+            </button>
+            <button onclick="downloadMasterPrompt()" class="px-3.5 py-2 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Download .txt</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="relative rounded-xl overflow-hidden border border-stone-300 dark:border-stone-700 shadow-inner">
+          <div class="bg-stone-900 px-4 py-2 flex items-center justify-between border-b border-stone-800 text-xs text-stone-400">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
+              <span class="ml-2 font-mono text-[11px] text-stone-400">village-harmony-master-prompt.txt</span>
+            </div>
+            <div class="font-mono text-[11px] text-stone-400 flex items-center gap-3">
+              <span id="master-length-tag" class="text-brand-400 font-semibold">Duration: 3–5 minutes</span>
+              <span class="text-stone-600 dark:text-stone-600">•</span>
+              <span id="master-voice-tag" class="text-emerald-400 font-semibold">Voice: Pure ASMR</span>
+              <span class="text-stone-600 dark:text-stone-600">•</span>
+              <span id="master-outfit-tag" class="text-rose-400 font-semibold">Gauri: Original</span>
+              <span id="master-char-count">0 chars</span>
+            </div>
+          </div>
+          <textarea id="masterPrompt" readonly class="w-full h-96 p-4 bg-stone-950 text-stone-100 font-mono text-xs leading-relaxed resize-y focus:outline-none select-all"></textarea>
+        </div>
+
+        <div class="mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+          <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <div>
+            <strong>How this works:</strong> The master prompt instructs the AI director to construct a complete story bible, locks, and scene breakdown. The AI director automatically extracts the locked character descriptions for Raghav, Gauri, and Aru for whichever characters appear in each scene, calculating the clip length to fulfill your target total duration of <span id="hint-duration-length" class="font-bold underline">3–5 minutes</span>.
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- TAB 2: SCENE PROMPT BUILDER -->
+    <main id="tab-scene" class="tab-content hidden space-y-6">
+      
+      <!-- Scene Input Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-earth-500/10 text-earth-600 dark:text-earth-400 font-bold text-sm">🎬</span>
+              <span>Google Flow / Veo Scene Prompt Builder</span>
+            </h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Paste one scene from your master storyboard. Scene duration and shot framing are dictated by the master breakdown.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="loadExampleScene()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-300 transition-all flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+              <span>Load Example Scene</span>
+            </button>
+            <button onclick="clearScene()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 transition-all">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-5 space-y-4">
+          <!-- Audio Toggle -->
+          <div class="flex items-center justify-between p-3.5 rounded-xl bg-stone-50 dark:bg-stone-800/40 border border-stone-200/80 dark:border-stone-700/60">
+            <div class="flex items-center gap-3">
+              <div class="p-2 rounded-lg bg-earth-500/10 text-earth-600 dark:text-earth-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+              </div>
+              <div>
+                <label for="keepAudio" class="text-xs font-bold text-stone-800 dark:text-stone-200 cursor-pointer">Include Natural ASMR / Rural Ambience</label>
+                <p class="text-[11px] text-stone-500 dark:text-stone-400">Injects Foley actions, breeze, river, and acoustic soundscape into prompt</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="keepAudio" checked class="sr-only peer" />
+              <div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer dark:bg-stone-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-earth-600"></div>
+            </label>
+          </div>
+
+          <!-- Scene / Plot Input -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="sceneInput" class="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">
+                Scene / Plot Beat
+              </label>
+              <span class="text-[11px] text-stone-400">Paste only the scene beat, not the consistency locks</span>
+            </div>
+            <textarea id="sceneInput" rows="5" placeholder="Example: Gauri kneels beside the hillside vegetable patch and gently harvests fresh leafy greens into her woven basket. Aru watches nearby while morning birds call from the trees." class="w-full text-xs sm:text-sm p-4 rounded-xl bg-stone-50/70 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-earth-500/30 focus:border-earth-500 transition-all leading-relaxed"></textarea>
+          </div>
+
+          <!-- Scene-Specific Audio Input -->
+          <div>
+            <label for="audioScene" class="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider mb-1.5">
+              Optional Scene-Specific Audio Details
+            </label>
+            <textarea id="audioScene" rows="2" placeholder="Example: Crisp leaf cutting sounds, soft basket rustle, distant babbling stream, light morning breeze rustling bamboo." class="w-full text-xs p-3 rounded-xl bg-stone-50/70 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-earth-500/30 focus:border-earth-500 transition-all"></textarea>
+          </div>
+
+          <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
+            <button onclick="buildScene()" class="w-full sm:w-auto px-6 py-3 bg-earth-600 hover:bg-earth-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span>Generate Google Flow Prompt</span>
+            </button>
+            <span class="text-xs text-stone-400">Automatically packages safety lock, consistency locks, and ASMR cues</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Generated Prompt Output Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+              Ready-to-Paste Flow / Veo Prompt
+            </h2>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+              Copy directly into Google Flow or Google Veo prompt input.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="copyScenePrompt()" id="copy-scene-btn" class="px-4 py-2 bg-earth-600 hover:bg-earth-700 text-white font-semibold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+              <span>Copy Prompt</span>
+            </button>
+            <button onclick="downloadScenePrompt()" class="px-3.5 py-2 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Download .txt</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="relative rounded-xl overflow-hidden border border-stone-300 dark:border-stone-700 shadow-inner">
+          <div class="bg-stone-900 px-4 py-2 flex items-center justify-between border-b border-stone-800 text-xs text-stone-400">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
+              <span class="ml-2 font-mono text-[11px] text-stone-400">google-flow-scene-prompt.txt</span>
+            </div>
+            <span id="scene-char-count" class="font-mono text-[11px] text-stone-400">0 chars</span>
+          </div>
+          <textarea id="sceneOutput" readonly placeholder="Click 'Generate Google Flow Prompt' above to compile your prompt..." class="w-full h-80 p-4 bg-stone-950 text-stone-100 font-mono text-xs leading-relaxed resize-y focus:outline-none select-all"></textarea>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- TAB 3: CONSISTENCY LOCKS -->
+    <main id="tab-locks" class="tab-content hidden space-y-6">
+      
+      <!-- Locks Header Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-sm">🔒</span>
+              <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+                Story Consistency & Safety Locks
+              </h2>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Protected canonical locks for the Village Harmony channel. Character and world locks are locked by default to prevent accidental edits.
+            </p>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            <button onclick="saveLocksManual()" class="px-3.5 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              <span>Save All</span>
+            </button>
+            <button onclick="exportConfig()" class="px-3 py-2 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              <span>Export JSON</span>
+            </button>
+            <button onclick="document.getElementById('configFile').click()" class="px-3 py-2 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Import JSON</span>
+            </button>
+            <input id="configFile" type="file" accept="application/json" class="hidden" />
+          </div>
+        </div>
+
+        <!-- Safety Notice Banner -->
+        <div class="mt-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-900 dark:text-emerald-200 flex items-start gap-2.5">
+          <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          <div>
+            <strong>Built-in YouTube Safety Lock:</strong> All generated scene prompts strictly enforce YouTube-safe content rules. Graphic violence, blood, gore, weapons for violence, harmful acts, nudity, sexualized depictions, and horror are excluded, while peaceful cooking, farming, harvesting, and family life are preserved.
+          </div>
+        </div>
+
+        <!-- 2x2 Locks Grid -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+          
+          <!-- Character Lock (Protected with Edit & Reset Options) -->
+          <div class="p-5 rounded-2xl bg-stone-50/70 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-700/60 shadow-sm flex flex-col justify-between transition-all" id="card-characterLock">
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">👤</span>
+                  <label for="characterLock" class="text-xs font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
+                    Character Consistency Lock
+                  </label>
+                  <span id="badge-characterLock" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Locked</span>
+                  </span>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="toggleEditLock('characterLock')" id="btn-edit-characterLock" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 transition-all flex items-center gap-1 shadow-sm">
+                    <svg class="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    <span>Unlock / Edit</span>
+                  </button>
+                  <button type="button" onclick="resetLockToDefault('characterLock')" title="Reset to canonical Village Harmony family defaults" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 transition-all flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span>Reset Default</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="relative">
+                <textarea id="characterLock" rows="7" readonly placeholder="Paste exact recurring character identities (Raghav, Gauri, Aru)..." class="w-full text-xs p-3.5 rounded-xl bg-stone-100/80 dark:bg-stone-900/80 border border-stone-200 dark:border-stone-700/80 text-stone-800 dark:text-stone-200 focus:outline-none transition-all font-mono leading-relaxed select-text cursor-default"></textarea>
+              </div>
+            </div>
+            <div class="mt-2.5 text-[11px] text-stone-400 flex items-center justify-between">
+              <span>Canonical family: Raghav, Gauri, Aru (Protected from accidental changes)</span>
+              <span id="charLockCount">0 chars</span>
+            </div>
+          </div>
+
+          <!-- Background / World Lock (Protected with Edit & Reset Options) -->
+          <div class="p-5 rounded-2xl bg-stone-50/70 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-700/60 shadow-sm flex flex-col justify-between transition-all" id="card-backgroundLock">
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🏡</span>
+                  <label for="backgroundLock" class="text-xs font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
+                    Background / World Lock
+                  </label>
+                  <span id="badge-backgroundLock" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Locked</span>
+                  </span>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="toggleEditLock('backgroundLock')" id="btn-edit-backgroundLock" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 transition-all flex items-center gap-1 shadow-sm">
+                    <svg class="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    <span>Unlock / Edit</span>
+                  </button>
+                  <button type="button" onclick="resetLockToDefault('backgroundLock')" title="Reset to canonical Village geography defaults" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 transition-all flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span>Reset Default</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="relative">
+                <textarea id="backgroundLock" rows="7" readonly placeholder="Paste fixed village geography and landmarks..." class="w-full text-xs p-3.5 rounded-xl bg-stone-100/80 dark:bg-stone-900/80 border border-stone-200 dark:border-stone-700/80 text-stone-800 dark:text-stone-200 focus:outline-none transition-all font-mono leading-relaxed select-text cursor-default"></textarea>
+              </div>
+            </div>
+            <div class="mt-2.5 text-[11px] text-stone-400 flex items-center justify-between">
+              <span>Locks hut, mud walls, garden patch, stream, hills.</span>
+              <span id="bgLockCount">0 chars</span>
+            </div>
+          </div>
+
+          <!-- Visual Style / Camera Lock -->
+          <div class="p-5 rounded-2xl bg-stone-50/70 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-700/60 shadow-sm flex flex-col justify-between transition-all" id="card-visualLock">
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🎨</span>
+                  <label for="visualLock" class="text-xs font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
+                    Visual Style / Camera Lock
+                  </label>
+                  <span id="badge-visualLock" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Locked</span>
+                  </span>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="toggleEditLock('visualLock')" id="btn-edit-visualLock" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 transition-all flex items-center gap-1 shadow-sm">
+                    <svg class="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    <span>Unlock / Edit</span>
+                  </button>
+                  <button type="button" onclick="resetLockToDefault('visualLock')" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 transition-all">
+                    Reset Default
+                  </button>
+                </div>
+              </div>
+
+              <div class="relative">
+                <textarea id="visualLock" rows="7" readonly class="w-full text-xs p-3.5 rounded-xl bg-stone-100/80 dark:bg-stone-900/80 border border-stone-200 dark:border-stone-700/80 text-stone-800 dark:text-stone-200 focus:outline-none transition-all font-mono leading-relaxed select-text cursor-default"></textarea>
+              </div>
+            </div>
+            <div class="mt-2.5 text-[11px] text-stone-400 flex items-center justify-between">
+              <span>Soft painterly 3D animation, warm lighting, cinematic depth.</span>
+              <span id="visualLockCount">0 chars</span>
+            </div>
+          </div>
+
+          <!-- Audio / ASMR Lock -->
+          <div class="p-5 rounded-2xl bg-stone-50/70 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-700/60 shadow-sm flex flex-col justify-between transition-all" id="card-audioLock">
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🍃</span>
+                  <label for="audioLock" class="text-xs font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider">
+                    Audio / ASMR Lock
+                  </label>
+                  <span id="badge-audioLock" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Locked</span>
+                  </span>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="toggleEditLock('audioLock')" id="btn-edit-audioLock" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 transition-all flex items-center gap-1 shadow-sm">
+                    <svg class="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    <span>Unlock / Edit</span>
+                  </button>
+                  <button type="button" onclick="resetLockToDefault('audioLock')" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700 transition-all">
+                    Reset Default
+                  </button>
+                </div>
+              </div>
+
+              <div class="relative">
+                <textarea id="audioLock" rows="7" readonly class="w-full text-xs p-3.5 rounded-xl bg-stone-100/80 dark:bg-stone-900/80 border border-stone-200 dark:border-stone-700/80 text-stone-800 dark:text-stone-200 focus:outline-none transition-all font-mono leading-relaxed select-text cursor-default"></textarea>
+              </div>
+            </div>
+            <div class="mt-2.5 text-[11px] text-stone-400 flex items-center justify-between">
+              <span>Rural immersive soundscapes, crisp Foley, acoustic bansuri.</span>
+              <span id="audioLockCount">0 chars</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- TAB 4: CHARACTER & MEDIA ASSETS -->
+    <main id="tab-assets" class="tab-content hidden space-y-6">
+      
+      <!-- Preloaded Project Reference Assets -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-sm">🖼️</span>
+              <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+                Bundled Project Assets
+              </h2>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Active reference images discovered in <code class="px-1.5 py-0.5 rounded bg-stone-100 dark:bg-stone-800 font-mono text-xs text-brand-600 dark:text-brand-400">./assets</code>. Ready for character consistency and channel branding.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 self-start sm:self-auto">
+            5 Static Files Verified
+          </span>
+        </div>
+
+        <!-- Built-in Asset Cards Grid -->
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="builtin-asset-grid">
+          
+          <!-- Asset 1: Raghav -->
+          <div class="group relative rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/60 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div class="relative bg-stone-100 dark:bg-stone-900 aspect-[4/3] overflow-hidden cursor-pointer" onclick="openModal('assets/raghav.jpeg', 'Raghav — Father / Village Craftsman', 'Mid-30s, medium-brown skin, short thick black hair, neat black beard, off-white cotton kurta.')">
+              <img src="assets/raghav.jpeg" onerror="this.onerror=null; this.src='assets/Man_wearing_traditional_cotton_kurta_20260922195458.jpeg';" alt="Raghav" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="px-3 py-1 bg-white/90 text-stone-900 text-xs font-bold rounded-lg shadow">View Full</span>
+              </div>
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white shadow">Raghav (Father)</span>
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-display font-bold text-sm text-stone-900 dark:text-stone-100">Raghav</h3>
+                <p class="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-2">Mid-30s, off-white cotton kurta, calm & hardworking craftsman.</p>
+                <div class="mt-2 text-[11px] text-stone-400 font-mono truncate" title="Man_wearing_traditional_cotton_k…_20260922195458.jpeg">763 KB • JPEG</div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center gap-1.5">
+                <a href="assets/raghav.jpeg" download="Man_wearing_traditional_cotton_k_20260922195458.jpeg" class="flex-1 py-1.5 text-center text-xs font-semibold rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors">Download</a>
+                <button onclick="copyImageUrlToClipboard('assets/raghav.jpeg')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors">Copy Ref</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Asset 2: Gauri -->
+          <div class="group relative rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/60 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div class="relative bg-stone-100 dark:bg-stone-900 aspect-[4/3] overflow-hidden cursor-pointer" onclick="openModal('assets/Woman_wearing_traditional_saree_20260922195500.jpeg', 'Gauri — Mother / Home & Harvest', 'Early 30s, gentle oval face, dark almond eyes, black hair bun, bindi, peach-pink floral saree.')">
+              <img src="assets/Woman_wearing_traditional_saree_20260922195500.jpeg" alt="Gauri" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="px-3 py-1 bg-white/90 text-stone-900 text-xs font-bold rounded-lg shadow">View Full</span>
+              </div>
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500 text-white shadow">Gauri (Mother)</span>
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-display font-bold text-sm text-stone-900 dark:text-stone-100">Gauri</h3>
+                <p class="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-2">Early 30s, peach-pink floral saree, gentle & caring homemaker.</p>
+                <div class="mt-2 text-[11px] text-stone-400 font-mono">808 KB • JPEG</div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center gap-1.5">
+                <a href="assets/Woman_wearing_traditional_saree_20260922195500.jpeg" download class="flex-1 py-1.5 text-center text-xs font-semibold rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors">Download</a>
+                <button onclick="copyImageUrlToClipboard('assets/Woman_wearing_traditional_saree_20260922195500.jpeg')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors">Copy Ref</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Asset 3: Aru -->
+          <div class="group relative rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/60 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div class="relative bg-stone-100 dark:bg-stone-900 aspect-[4/3] overflow-hidden cursor-pointer" onclick="openModal('assets/Young_boy_character_description_20260922195455.jpeg', 'Aru — Son / Young Explorer', '7-year-old boy, round innocent face, large dark-brown eyes, messy black hair, sky-blue T-shirt, dark-green shorts.')">
+              <img src="assets/Young_boy_character_description_20260922195455.jpeg" alt="Aru" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="px-3 py-1 bg-white/90 text-stone-900 text-xs font-bold rounded-lg shadow">View Full</span>
+              </div>
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500 text-white shadow">Aru (Son)</span>
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-display font-bold text-sm text-stone-900 dark:text-stone-100">Aru</h3>
+                <p class="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-2">7-year-old boy, innocent, curious, sky-blue shirt & green shorts.</p>
+                <div class="mt-2 text-[11px] text-stone-400 font-mono">689 KB • JPEG</div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center gap-1.5">
+                <a href="assets/Young_boy_character_description_20260922195455.jpeg" download class="flex-1 py-1.5 text-center text-xs font-semibold rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors">Download</a>
+                <button onclick="copyImageUrlToClipboard('assets/Young_boy_character_description_20260922195455.jpeg')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors">Copy Ref</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Asset 4: Banner -->
+          <div class="group relative rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/60 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div class="relative bg-stone-100 dark:bg-stone-900 aspect-[4/3] overflow-hidden cursor-pointer" onclick="openModal('assets/banner.png', 'Channel Banner & World Landscape', 'Panoramic view of the tropical village, green hills, mud hut with thatched roof, bamboo fencing, flowing stream.')">
+              <img src="assets/banner.png" alt="Village Banner" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="px-3 py-1 bg-white/90 text-stone-900 text-xs font-bold rounded-lg shadow">View Full</span>
+              </div>
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-600 text-white shadow">Channel Art</span>
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-display font-bold text-sm text-stone-900 dark:text-stone-100">Village World Banner</h3>
+                <p class="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-2">Panoramic world reference for environment, vegetation, and lighting.</p>
+                <div class="mt-2 text-[11px] text-stone-400 font-mono">2.66 MB • PNG</div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center gap-1.5">
+                <a href="assets/banner.png" download class="flex-1 py-1.5 text-center text-xs font-semibold rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors">Download</a>
+                <button onclick="copyImageUrlToClipboard('assets/banner.png')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors">Copy Ref</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Asset 5: Logo -->
+          <div class="group relative rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/60 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div class="relative bg-stone-100 dark:bg-stone-900 aspect-[4/3] overflow-hidden cursor-pointer flex items-center justify-center p-4" onclick="openModal('assets/logo.png', 'Official Studio Logo', 'Village Harmony brand insignia and profile artwork.')">
+              <img src="assets/logo.png" alt="Channel Logo" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="px-3 py-1 bg-white/90 text-stone-900 text-xs font-bold rounded-lg shadow">View Full</span>
+              </div>
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-600 text-white shadow">Brand Logo</span>
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-display font-bold text-sm text-stone-900 dark:text-stone-100">Brand Logo</h3>
+                <p class="text-xs text-stone-500 dark:text-stone-400 mt-1 line-clamp-2">High-resolution channel avatar and studio identity icon.</p>
+                <div class="mt-2 text-[11px] text-stone-400 font-mono">2.21 MB • PNG</div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center gap-1.5">
+                <a href="assets/logo.png" download class="flex-1 py-1.5 text-center text-xs font-semibold rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors">Download</a>
+                <button onclick="copyImageUrlToClipboard('assets/logo.png')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors">Copy Ref</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Background Audio Tracks (assets/audio) -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-sm">🎵</span>
+              <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+                Channel Background Audio & Soundtracks
+              </h2>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Atmospheric background music located in <code class="px-1.5 py-0.5 rounded bg-stone-100 dark:bg-stone-800 font-mono text-xs text-brand-600 dark:text-brand-400">./assets/audio/</code>. Acoustic bansuri flute, santoor plucks, and rural ambience ready for download.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 self-start sm:self-auto flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span>2 Audio Tracks Ready</span>
+          </span>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+          
+          <!-- Audio Track 1 -->
+          <div class="p-5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/60 shadow-sm hover:shadow transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold">
+                    🎼
+                  </div>
+                  <div>
+                    <h3 class="font-display font-bold text-sm text-stone-900 dark:text-stone-100">Village Harmony Soundtrack #1</h3>
+                    <p class="text-[11px] text-stone-400 font-mono truncate" title="song-HJG1xIY8TmnYKLOhrZTw.mp4">song-HJG1xIY8TmnYKLOhrZTw.mp4</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-300">5.54 MB</span>
+              </div>
+              <p class="text-xs text-stone-600 dark:text-stone-300 mt-2 leading-relaxed">
+                Soothing rural acoustic melody with bansuri flute and gentle strings. Ideal for peaceful morning, cooking, and harvesting scenes.
+              </p>
+              
+              <!-- Audio Player -->
+              <div class="mt-4 p-2 rounded-xl bg-stone-50 dark:bg-stone-900/80 border border-stone-200/60 dark:border-stone-700/60">
+                <audio controls class="w-full h-8" preload="none">
+                  <source src="assets/audio/song-HJG1xIY8TmnYKLOhrZTw.mp4" type="video/mp4">
+                  <source src="assets/audio/song-HJG1xIY8TmnYKLOhrZTw.mp4" type="audio/mp4">
+                  Your browser does not support the audio player.
+                </audio>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center gap-2">
+              <a href="assets/audio/song-HJG1xIY8TmnYKLOhrZTw.mp4" download="village-harmony-soundtrack-1.mp4" class="flex-1 py-2 text-center text-xs font-semibold rounded-lg bg-brand-500 hover:bg-brand-600 text-white transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>Download Audio</span>
+              </a>
+              <button onclick="copyImageUrlToClipboard('assets/audio/song-HJG1xIY8TmnYKLOhrZTw.mp4')" class="px-3 py-2 text-xs font-semibold rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors">
+                Copy Path
+              </button>
+            </div>
+          </div>
+
+          <!-- Audio Track 2 -->
+          <div class="p-5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/60 shadow-sm hover:shadow transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-lg bg-earth-500/10 text-earth-600 dark:text-earth-400 flex items-center justify-center font-bold">
+                    🪈
+                  </div>
+                  <div>
+                    <h3 class="font-display font-bold text-sm text-stone-900 dark:text-stone-100">Village Harmony Soundtrack #2</h3>
+                    <p class="text-[11px] text-stone-400 font-mono truncate" title="song-KRVBXHvfN395GmuY7y4s.mp4">song-KRVBXHvfN395GmuY7y4s.mp4</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-300">4.86 MB</span>
+              </div>
+              <p class="text-xs text-stone-600 dark:text-stone-300 mt-2 leading-relaxed">
+                Warm Indian folk acoustic rhythm with lively plucks. Great for playful scenes with Aru, crafts with Raghav, and cheerful village life.
+              </p>
+              
+              <!-- Audio Player -->
+              <div class="mt-4 p-2 rounded-xl bg-stone-50 dark:bg-stone-900/80 border border-stone-200/60 dark:border-stone-700/60">
+                <audio controls class="w-full h-8" preload="none">
+                  <source src="assets/audio/song-KRVBXHvfN395GmuY7y4s.mp4" type="video/mp4">
+                  <source src="assets/audio/song-KRVBXHvfN395GmuY7y4s.mp4" type="audio/mp4">
+                  Your browser does not support the audio player.
+                </audio>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center gap-2">
+              <a href="assets/audio/song-KRVBXHvfN395GmuY7y4s.mp4" download="village-harmony-soundtrack-2.mp4" class="flex-1 py-2 text-center text-xs font-semibold rounded-lg bg-earth-600 hover:bg-earth-700 text-white transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>Download Audio</span>
+              </a>
+              <button onclick="copyImageUrlToClipboard('assets/audio/song-KRVBXHvfN395GmuY7y4s.mp4')" class="px-3 py-2 text-xs font-semibold rounded-lg border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 transition-colors">
+                Copy Path
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Custom Uploaded Assets (IndexedDB) -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold text-sm">📤</span>
+              <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+                Custom User Reference Assets
+              </h2>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Upload custom character iterations, costume variations, or props. Persisted locally in your browser via IndexedDB.
+            </p>
+          </div>
+        </div>
+
+        <!-- Uploader Dropzone / Input -->
+        <div class="mt-5 p-6 rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 hover:border-brand-500 dark:hover:border-brand-500 bg-stone-50/50 dark:bg-stone-800/30 text-center transition-all">
+          <input id="assetFiles" type="file" multiple accept="image/*" class="hidden" onchange="handleAddCustomAssets(event)" />
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-3">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            </div>
+            <h4 class="text-sm font-bold text-stone-800 dark:text-stone-200">Upload Character & Location References</h4>
+            <p class="text-xs text-stone-400 mt-1">PNG, JPG, WEBP supported • Stored safely offline</p>
+            <button onclick="document.getElementById('assetFiles').click()" class="mt-4 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+              <span>Choose Image Files</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Assets List -->
+        <div id="custom-asset-grid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Rendered dynamically from IndexedDB -->
+        </div>
+      </section>
+
+      <!-- Netlify Deployment Instruction Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-sm">⚡</span>
+          <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+            Netlify Deployment Architecture
+          </h2>
+        </div>
+        <p class="text-xs text-stone-500 dark:text-stone-400 mb-4 leading-relaxed">
+          The studio is configured as a zero-build static site ready for instant Netlify hosting. Files in <code class="px-1 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-teal-600 dark:text-teal-400 font-mono">assets/</code> are automatically served via HTTP.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-stone-950 text-stone-200 font-mono text-xs border border-stone-800 leading-relaxed shadow-inner">
+            <div class="text-stone-500 pb-2 border-b border-stone-800 flex items-center justify-between">
+              <span>DIRECTORY STRUCTURE</span>
+              <span class="text-[10px] text-teal-400">Ready to deploy</span>
+            </div>
+            <pre class="mt-2 text-stone-300">
+village-harmony-prompt-studio/
+├── index.html            <span class="text-stone-500"># Studio app & UI</span>
+├── netlify.toml          <span class="text-stone-500"># Netlify build config</span>
+├── _redirects            <span class="text-stone-500"># SPA route fallbacks</span>
+└── assets/               <span class="text-stone-500"># Static media folder</span>
+    ├── audio/            <span class="text-stone-500"># Background soundtracks</span>
+    │   ├── song-HJG1x... <span class="text-stone-500"># Soundtrack #1</span>
+    │   └── song-KRVBx... <span class="text-stone-500"># Soundtrack #2</span>
+    ├── logo.png          <span class="text-stone-500"># Channel logo</span>
+    ├── banner.png        <span class="text-stone-500"># World banner</span>
+    ├── raghav.jpeg       <span class="text-stone-500"># Raghav master ref</span>
+    ├── Gauri (...).jpeg  <span class="text-stone-500"># Gauri master ref</span>
+    ├── Aru (...).jpeg    <span class="text-stone-500"># Aru master ref</span>
+    └── README.md         <span class="text-stone-500"># Asset documentation</span></pre>
+          </div>
+
+          <div class="p-4 rounded-xl bg-stone-50/70 dark:bg-stone-800/40 border border-stone-200/80 dark:border-stone-700/60 flex flex-col justify-between">
+            <div class="space-y-3">
+              <h4 class="text-xs font-bold text-stone-800 dark:text-stone-200 uppercase tracking-wider">How to Deploy:</h4>
+              <ol class="text-xs text-stone-600 dark:text-stone-400 space-y-2 list-decimal list-inside">
+                <li>Drag this entire project folder into your <a href="https://app.netlify.com/drop" target="_blank" class="text-teal-600 dark:text-teal-400 underline font-semibold">Netlify Drop</a> dashboard.</li>
+                <li>Netlify will instantly publish your site with SSL enabled.</li>
+                <li>All character images and media in <code class="font-mono text-stone-800 dark:text-stone-200">./assets/</code> will load automatically without external hosting.</li>
+              </ol>
+            </div>
+            <div class="mt-4 pt-3 border-t border-stone-200 dark:border-stone-700 text-[11px] text-stone-400">
+              Files <code class="font-mono">netlify.toml</code> and <code class="font-mono">_redirects</code> have been pre-created for you.
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 pt-6 border-t border-stone-200/80 dark:border-stone-800 text-center text-xs text-stone-400 dark:text-stone-500">
+      <p class="font-display font-semibold text-stone-600 dark:text-stone-400">Village Harmony • Simple Life. Beautiful Stories.</p>
+      <p class="mt-1">Crafted for Google Flow & Google Veo Cinematic Workflows.</p>
+    </footer>
+
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    /* ==========================================================================
+       1. CONSTANTS & EXACT MASTER PROMPT (FOR VILLAGE HARMONY YOUTUBE CHANNEL)
+       ========================================================================== */
+    const MASTER_PROMPT_CORE = `You are the master story director and Google Flow/Veo prompt writer for the YouTube channel “Village Harmony,” which creates peaceful cinematic animated stories about Indian/South Asian village family life.
+
+CHANNEL & CANONICAL IDENTITY:
+Village Harmony is a single, continuous cinematic universe focusing on a fixed recurring family and their peaceful hill-village life:
+- Gauri (Mother / Homemaker & Harvest): Early 30s, medium-brown skin, gentle oval face, dark almond eyes, center-parted long black hair tied into a low bun, small red bindi, gold earrings, thin gold necklace, red/gold bangles, peach-pink floral cotton saree. Gentle, caring and hardworking.
+- Raghav (Father / Village Craftsman & Farmer): Mid 30s, medium-brown skin, short thick black hair, neatly trimmed full black beard and mustache, dark brown eyes, off-white cotton kurta, dark-brown dhoti/pajama, brown sandals. Calm, patient and hardworking.
+- Aru (Son / 7-Year-Old Explorer): 7-year-old boy, medium-brown skin, round innocent face, large dark-brown eyes, short slightly messy black hair, light sky-blue T-shirt, dark-green shorts, brown sandals. Playful, curious and affectionate.
+- Village Geography: Peaceful tropical South Asian hill village in spring. Mud house with thatched roof, bamboo fences, stone paths, green hills, coconut/banana/betel-nut trees, wild grass, vegetable gardens, flowing clear stream and distant misty hills.
+
+WORKFLOW:
+The user will give you only:
+1) VIDEO TOPIC
+2) STORY OUTLINE / CORE PLOT
+
+Turn that into a coherent, warm, family-friendly video plan. Preserve the user's core premise. Improve pacing, visual storytelling, continuity and scene transitions without changing the intended story.
+
+FIRST CREATE A STORY BIBLE:
+A) Title and one-line premise
+B) Canonical Character Bible (Raghav, Gauri, Aru — lock identities for this story)
+C) Fixed World / Background Bible (Locations used in this story)
+D) Visual Style Lock
+E) Audio / ASMR Lock
+F) Continuity rules and recurring props
+G) YouTube-safe content rules
+
+CHARACTER CONSISTENCY:
+Give every recurring character a fixed identity. Lock age, skin tone, face shape, eyes, hairstyle, body proportions, clothing colors/materials, jewelry/accessories, footwear and personality.
+Once established, these details must never change unless the user explicitly asks for a redesign.
+Never randomly change clothing, hairstyle, age, face, body proportions or accessories between scenes. Characters must remain visually recognizable from scene to scene.
+
+BACKGROUND / WORLD CONSISTENCY:
+Create one coherent village geography and keep it stable across all scenes.
+Lock the family home, nearby garden/fields, paths, fences, stream/river, hills, trees, cooking area and other recurring landmarks.
+Keep season, weather, architecture, vegetation, lighting logic and overall atmosphere consistent.
+A place must still look like the same place when revisited from a different camera angle.
+
+VISUAL STYLE:
+High-quality cinematic 3D animated Indian/South Asian rural family-film aesthetics; soft painterly textures; warm natural lighting; realistic cloth, hair, foliage and environmental movement; expressive but natural facial animation; cinematic depth of field; smooth camera motion; coherent geography; natural proportions; no modern urban elements unless required by the outline.
+Use calm, readable compositions and purposeful camera movement.
+
+STORY LOGIC:
+Every scene must logically connect to the previous and next scene.
+Respect time, location, object/prop continuity, character positions and cause-and-effect.
+Do not teleport characters or props. Do not duplicate characters accidentally. Do not make a character use something they did not obtain or carry.
+Cooking ingredients must exist before cooking. Harvested/collected/caught items must be established before use. Meals must follow preparation naturally.
+Keep actions simple enough to be clearly generated in short AI-video clips.
+
+SCENE BREAKDOWN & SCENE LOCK PROMPT:
+After the story bible, create the full video scene by scene. Budget the number of scenes and the length of each clip to fulfill the target total story duration.
+For EVERY SCENE provide:
+1. Scene number and short title
+2. Approximate clip duration (e.g. 6-8 seconds)
+3. Location and time of day
+4. Characters present
+5. Main action and plot purpose
+6. Camera framing and movement
+7. Important continuity notes
+8. Natural audio / ASMR cues
+9. Voice / Narration Script (If voice mode selected: provide exact dialogue and narration script in Bangla, Hindi, or English with timing and emotion cues; or note "Pure ASMR - No Spoken Voice")
+10. COMPLETE COPY-READY SCENE PROMPT (incorporating the scene lock):
+   Generate a complete, self-contained Google Flow/Veo scene prompt formatted as:
+   \`\`\`
+   GOOGLE FLOW / VEO VIDEO PROMPT — VILLAGE HARMONY
+   SCENE / PLOT: [Specific shot beat]
+   CHARACTER CONSISTENCY LOCK: [Extract exact locked descriptions of characters present in this scene]
+   BACKGROUND / WORLD CONSISTENCY LOCK: [Specific village location details]
+   VISUAL STYLE / CAMERA LOCK: [Cinematic 3D animation, lighting, camera framing and duration]
+   AUDIO / ASMR: [Specific Foley, voice script cue, and natural sounds]
+   YOUTUBE-SAFE CONTENT LOCK: [Standard safety rules]
+   \`\`\`
+
+AUDIO & VOICE MODES:
+The studio supports flexible audio and voiceover options:
+- PURE ASMR MODE: No spoken dialogue or voiceover. Focus exclusively on crisp environmental Foley, birds, water, breeze, and acoustic bansuri music.
+- BANGLA (বাংলা) SCRIPT MODE: Full scene-by-scene script in authentic Bengali, including character dialogue for Raghav, Gauri, and Aru, plus gentle storyteller narration.
+- HINDI (हिंदी) SCRIPT MODE: Full scene-by-scene script in warm, respectful rural Hindi, including character dialogue and storyteller narration.
+- ENGLISH SCRIPT MODE: Full scene-by-scene script in clear, poetic English narration and character dialogue for international audiences.
+
+Channel background music should be bright, cheerful and peaceful Indian-inspired acoustic music using bansuri/bamboo flute, light acoustic guitar, santoor-like plucks and very light hand percussion, with natural ambience and quiet gaps. Avoid sad or melancholic tone.
+
+YOUTUBE-SAFE CONTENT:
+All scenes must remain family-friendly and suitable for mainstream YouTube.
+Never add graphic violence, blood, gore, torture, cruelty, mutilation, self-harm, dangerous harmful acts, sexual acts, sexualized behavior, nudity, explicit anatomy, weapons used for violence, horror or disturbing imagery.
+Do not introduce threatening violence or shocking material.
+Normal village activities such as cooking, harvesting, fishing, farming and eating must be peaceful and non-graphic.
+Children must remain safe, appropriately dressed and never be sexualized or placed in graphic contexts.
+
+ORIGINALITY:
+Do not use copyrighted characters, famous personalities, recognizable movie designs, existing songs, copied melodies or branded visual identities. Keep all created characters original.
+
+SCENE PROMPT RULES:
+Each Scene Prompt must describe only the intended clip. It must preserve the locked character identities and world without restating contradictory alternatives.
+Do not overcrowd a short clip with too many locations or actions.
+No random extra characters, props or events.
+No text, logos or watermarks inside generated visuals unless explicitly requested.
+
+OUTPUT ORDER:
+1. STORY BIBLE
+2. CHARACTER CONSISTENCY LOCK
+3. BACKGROUND / WORLD CONSISTENCY LOCK
+4. VISUAL STYLE LOCK
+5. AUDIO / ASMR LOCK
+6. SCENE-BY-SCENE STORYBOARD (including the ready-to-copy scene prompt for every single scene)
+7. FINAL CONSISTENCY CHECK
+
+Make the result warm, visually rich, peaceful, logically connected and directly usable for Google Flow/Veo scene generation.`;
+
+    // Gauri saree variations (from Village_Harmony_Master_Prompt_Gauri_Versions.pdf).
+    // Only the saree text in Gauri's line differs between versions; 'original' matches MASTER_PROMPT_CORE as written.
+    const GAURI_ORIGINAL_SAREE = 'peach-pink floral cotton saree';
+    const GAURI_OUTFITS = [
+      { id: 'sage-mustard', version: 1, name: 'Sage Green + Mustard', short: 'Sage + Mustard',
+        saree: 'soft sage-green plain cotton saree with a wide mustard-yellow woven border, matching mustard short-sleeve blouse, pallu draped over the left shoulder',
+        image: 'assets/gauri/Indian%20Saree%20Character%20Model%20Sheet.png', swatches: ['#8fae8b', '#d4a72c'] },
+      { id: 'terracotta-cream', version: 2, name: 'Terracotta Rust + Cream', short: 'Terracotta + Cream',
+        saree: 'warm terracotta-orange handloom cotton saree with a thin cream-and-gold striped border, cream short-sleeve blouse, pallu draped over the left shoulder',
+        image: 'assets/gauri/Indian%20Woman%20Saree%20Character%20Turnaround.png', swatches: ['#c2643a', '#efe6d2', '#c9a24a'] },
+      { id: 'teal-gold', version: 3, name: 'Deep Teal + Gold', short: 'Teal + Gold',
+        saree: 'deep teal-blue cotton saree with a narrow golden zari border, matching teal short-sleeve blouse, pallu draped over the left shoulder',
+        image: 'assets/gauri/Indian%20Saree%20Character%20Turntable.png', swatches: ['#1f5f7a', '#c9a24a'] },
+      { id: 'mustard-maroon', version: 4, name: 'Mustard Yellow + Maroon', short: 'Mustard + Maroon',
+        saree: 'mustard-yellow cotton saree with a maroon woven border, maroon short-sleeve blouse, pallu draped over the left shoulder',
+        image: 'assets/gauri/Indian%20Sari%20Character%20Turnaround.png', swatches: ['#d9a82e', '#7d2131'] },
+      { id: 'peach-simplified', version: 5, name: 'Peach-Pink Simplified', short: 'Peach-Pink Simple',
+        saree: 'peach-pink cotton saree with a thin dark-red border and only a few large, widely spaced floral motifs, matching pink short-sleeve blouse, pallu draped over the left shoulder',
+        image: 'assets/gauri/Indian%20Saree%20Character%20Turnaround%20Sheet.png', swatches: ['#e8988a', '#a83a3a'] },
+      { id: 'original', version: 6, name: 'Original Peach-Pink Floral', short: 'Original', original: true,
+        saree: GAURI_ORIGINAL_SAREE,
+        image: 'assets/gauri/Indian%20Woman%20Saree%20Character%20Turnaround%20(1).png', swatches: ['#eba39a', '#d65a6a', '#c9a24a'] }
+    ];
+    const GAURI_OUTFIT_KEY = 'villageHarmonyGauriOutfit';
+
+    const SAFETY_LOCK = `YOUTUBE-SAFE CONTENT LOCK:
+Keep the scene family-friendly and non-graphic. Do not add violence, blood, gore, torture, cruelty, mutilation, self-harm, dangerous harmful acts, sexual acts, nudity, sexualized presentation, explicit anatomy, weapons used for violence, horror or disturbing imagery. Keep children safe and appropriately dressed. Normal village activities such as cooking, harvesting, fishing, farming and eating must remain peaceful and non-graphic.`;
+
+    const DEFAULT_LOCKS = {
+      characterLock: `CHARACTER CONSISTENCY LOCK:
+Gauri (Mother) — early 30s, medium-brown skin, gentle oval face, dark almond eyes, center-parted long black hair tied into a low bun, small red bindi, gold earrings, thin gold necklace, red/gold bangles, peach-pink floral cotton saree. Gentle, caring and hardworking.
+Raghav (Father) — mid 30s, medium-brown skin, short thick black hair, neatly trimmed full black beard and mustache, dark brown eyes, off-white cotton kurta, dark-brown dhoti/pajama, brown sandals. Calm, patient and hardworking.
+Aru (Son) — 7-year-old boy, medium-brown skin, round innocent face, large dark-brown eyes, short slightly messy black hair, light sky-blue T-shirt, dark-green shorts, brown sandals. Playful, curious and affectionate.
+Keep exact faces, hairstyles, clothing, jewelry, ages and body proportions in every scene.`,
+      backgroundLock: `BACKGROUND / WORLD CONSISTENCY LOCK:
+Peaceful tropical South Asian hill village in spring. Mud houses with thatched roofs, bamboo fences, stone paths, green hills, coconut/banana/betel-nut trees, wild grass, vegetable gardens, flowing clear stream and distant misty hills. Keep the same family home, nearby garden, hillside patch, stream and paths in consistent relative positions. Warm natural sunlight, soft haze, traditional baskets, clay pots and woven mats. No modern urban elements.`,
+      visualLock: `VISUAL STYLE LOCK:
+High-quality cinematic 3D animated Indian/South Asian rural family film. Soft painterly textures, warm natural lighting, realistic cloth, hair, foliage and environmental movement, expressive but natural facial animation, cinematic depth of field, smooth camera movement, natural proportions, coherent geography, no modern urban elements.`,
+      audioLock: `AUDIO / ASMR LOCK:
+Naturalistic immersive rural ASMR. Soft realistic environmental sounds. Close detailed Foley matching visible actions. Peaceful and soothing. Crisp nearby birds, flowing river, gentle wind, leaves, insects and subtle village ambience when appropriate. No loud music, exaggerated sound effects or sudden volume changes. Some scenes may be mostly natural ambience with little or no music.`
+    };
+
+    const STORE_KEY = 'villageHarmonyLocksV3';
+    const DB_NAME = 'VillageHarmonyAssets';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'images';
+
+    let currentDurationLength = '3–5 minutes';
+    let currentVoiceMode = 'asmr'; // 'asmr' | 'bangla' | 'hindi' | 'english'
+    let currentGauriOutfit = 'original'; // id from GAURI_OUTFITS
+
+    const VOICE_PROMPT_INSTRUCTIONS = {
+      asmr: `VOICE & AUDIO MODE: PURE NATURAL ASMR (NO SPOKEN DIALOGUE / VOICEOVER)
+- Produce zero spoken dialogue and zero voiceover narration.
+- Focus exclusively on rich, soothing environmental sound design: crisp Foley, nature ambience, flowing water, crackling firewood, harvesting sounds, and peaceful rural acoustic instruments.`,
+
+      bangla: `VOICE & SCRIPT GENERATION: BANGLA (বাংলা) SCRIPT & VOICEOVER
+- For EVERY SCENE in the storyboard, generate the authentic spoken script written in natural, heartwarming Bengali / Bangla (বাংলা).
+- Include both Character Dialogue (in sweet, respectful rural Bengali for Gauri, Raghav, and playful little Aru) and gentle Storyteller Narration (কণ্ঠ / ভয়েসওভার).
+- Mark timing cues (e.g. [0:00 - 0:04]) and delivery tone notes (e.g. [স্নেহমাখা নরম কণ্ঠে / শান্ত ও মমতাময়ী সুরে]) alongside natural ASMR cues.`,
+
+      hindi: `VOICE & SCRIPT GENERATION: HINDI (हिंदी) SCRIPT & VOICEOVER
+- For EVERY SCENE in the storyboard, generate the authentic spoken script written in gentle, respectful rural Hindi (हिंदी).
+- Include both Character Dialogue (for Gauri, Raghav, and inquisitive Aru) and heartwarming Storyteller Narration (कथावाचक / वॉयसओवर).
+- Mark timing cues (e.g. [0:00 - 0:04]) and delivery tone notes (e.g. [स्नेहभरी धीमी आवाज़ में / शांत और आत्मीय भाव से]) alongside natural ASMR cues.`,
+
+      english: `VOICE & SCRIPT GENERATION: ENGLISH SCRIPT & VOICEOVER
+- For EVERY SCENE in the storyboard, generate the spoken script written in clear, poetic, and heartwarming English.
+- Include both Character Dialogue (for Gauri, Raghav, and inquisitive Aru) and gentle Storyteller Narration (Voiceover).
+- Mark timing cues (e.g. [0:00 - 0:04]) and delivery tone notes (e.g. [gentle, reflective tone / affectionate cadence]) alongside natural ASMR cues.`
+    };
+
+    /* ==========================================================================
+       2. DURATION SELECTOR & MASTER PROMPT COMPILATION
+       ========================================================================== */
+    function updateMasterPromptDisplay() {
+      // Per instructions: Only send the length in the prompt, not the platform recommendations
+      const durationHeader = `TARGET TOTAL STORY DURATION: ${currentDurationLength}\n(Budget the scene breakdown and individual scene clip lengths to achieve this total overall video duration.)\n\n`;
+      const voiceHeader = `${VOICE_PROMPT_INSTRUCTIONS[currentVoiceMode]}\n\n`;
+      const outfit = getGauriOutfit();
+      const fullPrompt = durationHeader + voiceHeader + MASTER_PROMPT_CORE.replace(GAURI_ORIGINAL_SAREE, outfit.saree);
+      
+      const el = document.getElementById('masterPrompt');
+      if (el) {
+        el.value = fullPrompt;
+        document.getElementById('master-char-count').textContent = `${fullPrompt.length} chars`;
+      }
+      const tag = document.getElementById('master-length-tag');
+      if (tag) tag.textContent = `Duration: ${currentDurationLength}`;
+      const badge = document.getElementById('active-duration-badge');
+      if (badge) badge.textContent = currentDurationLength;
+      const hint = document.getElementById('hint-duration-length');
+      if (hint) hint.textContent = currentDurationLength;
+
+      const voiceTag = document.getElementById('master-voice-tag');
+      if (voiceTag) {
+        const labels = { asmr: 'Voice: Pure ASMR', bangla: 'Voice: Bangla Script', hindi: 'Voice: Hindi Script', english: 'Voice: English Script' };
+        voiceTag.textContent = labels[currentVoiceMode] || 'Voice: Pure ASMR';
+      }
+      const voiceBadge = document.getElementById('active-voice-badge');
+      if (voiceBadge) {
+        const badges = { asmr: 'Active: Pure ASMR (No Voice)', bangla: 'Active: Bangla (বাংলা) Script', hindi: 'Active: Hindi (हिंदी) Script', english: 'Active: English Script' };
+        voiceBadge.textContent = badges[currentVoiceMode] || 'Active: Pure ASMR';
+      }
+
+      const outfitTag = document.getElementById('master-outfit-tag');
+      if (outfitTag) outfitTag.textContent = `Gauri: V${outfit.version} ${outfit.short}`;
+      const outfitBadge = document.getElementById('active-outfit-badge');
+      if (outfitBadge) outfitBadge.textContent = `Active: V${outfit.version} ${outfit.name}`;
+    }
+
+    function getGauriOutfit() {
+      return GAURI_OUTFITS.find(o => o.id === currentGauriOutfit) || GAURI_OUTFITS[GAURI_OUTFITS.length - 1];
+    }
+
+    function renderGauriOutfits() {
+      const grid = document.getElementById('gauri-outfit-grid');
+      if (!grid) return;
+      grid.innerHTML = GAURI_OUTFITS.map(o => {
+        const active = o.id === currentGauriOutfit;
+        const stateClasses = active
+          ? 'active border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-sm'
+          : 'border-stone-200 dark:border-stone-800 bg-white/60 dark:bg-stone-800/40';
+        const swatches = o.swatches.map(c => `<span class="w-3 h-3 rounded-full border border-black/10 dark:border-white/20" style="background:${c}"></span>`).join('');
+        return `
+          <div onclick="selectGauriOutfit('${o.id}', this)" class="gauri-outfit-option group cursor-pointer rounded-xl border-2 hover:border-brand-500/60 overflow-hidden transition-all ${stateClasses}">
+            <div class="relative aspect-[3/2] bg-stone-100 dark:bg-stone-900 overflow-hidden">
+              <img src="${o.image}" alt="Gauri — ${o.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-stone-900/75 text-white">V${o.version}</span>
+              ${o.original ? '<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-rose-500 text-white shadow">Original</span>' : ''}
+              <button type="button" title="View full sheet" onclick="event.stopPropagation(); openModal('${o.image}', 'Gauri — V${o.version} ${o.name}', '${o.saree.replace(/'/g, "\\'")}')" class="absolute bottom-1.5 right-1.5 p-1 rounded-md bg-stone-900/70 hover:bg-stone-900 text-white opacity-80 hover:opacity-100 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path></svg>
+              </button>
+            </div>
+            <div class="p-2.5">
+              <div class="text-xs font-bold text-stone-800 dark:text-stone-100 leading-snug">${o.name}</div>
+              <div class="mt-1.5 flex items-center gap-1">${swatches}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function selectGauriOutfit(id, cardEl) {
+      currentGauriOutfit = id;
+      try { localStorage.setItem(GAURI_OUTFIT_KEY, id); } catch (e) {}
+
+      document.querySelectorAll('.gauri-outfit-option').forEach(el => {
+        el.classList.remove('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20', 'shadow-sm');
+        el.classList.add('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
+      });
+
+      if (cardEl) {
+        cardEl.classList.remove('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
+        cardEl.classList.add('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20', 'shadow-sm');
+      }
+
+      updateMasterPromptDisplay();
+      const outfit = getGauriOutfit();
+      showToast(`Gauri's outfit set to V${outfit.version} ${outfit.name}`);
+    }
+
+    function selectVoiceMode(mode, cardEl) {
+      currentVoiceMode = mode;
+      document.querySelectorAll('.voice-option').forEach(el => {
+        el.classList.remove('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20');
+        el.classList.add('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
+      });
+
+      if (cardEl) {
+        cardEl.classList.remove('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
+        cardEl.classList.add('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20');
+      }
+
+      updateMasterPromptDisplay();
+      const names = { asmr: 'Pure Natural ASMR', bangla: 'Bangla Script & Voice', hindi: 'Hindi Script & Voice', english: 'English Script & Voice' };
+      showToast(`Voice mode set to ${names[mode]}`);
+    }
+
+    function selectDuration(lengthStr, cardEl) {
+      currentDurationLength = lengthStr;
+      
+      // Update UI classes
+      document.querySelectorAll('.duration-option').forEach(el => {
+        el.classList.remove('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20');
+        el.classList.add('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
+      });
+
+      if (cardEl) {
+        cardEl.classList.remove('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
+        cardEl.classList.add('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20');
+      }
+
+      const input = document.getElementById('custom-duration-input');
+      if (input) input.value = '';
+
+      updateMasterPromptDisplay();
+      showToast(`Target duration set to ${lengthStr}`);
+    }
+
+    function setCustomDuration(val) {
+      const trimmed = val.trim();
+      if (!trimmed) {
+        currentDurationLength = '3–5 minutes';
+      } else {
+        currentDurationLength = trimmed;
+      }
+      
+      // remove active from cards
+      document.querySelectorAll('.duration-option').forEach(el => {
+        el.classList.remove('active', 'border-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/30', 'ring-2', 'ring-brand-500/20');
+        el.classList.add('border-stone-200', 'dark:border-stone-800', 'bg-white/60', 'dark:bg-stone-800/40');
+      });
+
+      updateMasterPromptDisplay();
+    }
+
+    function copyMasterPrompt() {
+      const text = document.getElementById('masterPrompt').value;
+      copyToClipboard(text, 'Master prompt copied to clipboard!');
+      const btn = document.getElementById('copy-master-btn');
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Copied!</span>`;
+        setTimeout(() => btn.innerHTML = orig, 1800);
+      }
+    }
+
+    function downloadMasterPrompt() {
+      downloadFile('village-harmony-master-prompt.txt', document.getElementById('masterPrompt').value);
+      showToast('Downloaded village-harmony-master-prompt.txt');
+    }
+
+    /* ==========================================================================
+       3. SCENE PROMPT BUILDER
+       ========================================================================== */
+    function buildScene() {
+      const sceneInput = document.getElementById('sceneInput').value.trim();
+      if (!sceneInput) {
+        showToast('Please paste a scene beat first', 'error');
+        document.getElementById('sceneInput').focus();
+        return;
+      }
+
+      saveLocksAuto();
+
+      const char = document.getElementById('characterLock').value.trim() || '[Use the exact recurring character identities established in the story bible. Do not redesign any character.]';
+      const bg = document.getElementById('backgroundLock').value.trim() || '[Preserve the established village/world exactly. Do not invent a contradictory location.]';
+      const visual = document.getElementById('visualLock').value.trim();
+      const audio = document.getElementById('audioLock').value.trim();
+      const audioScene = document.getElementById('audioScene').value.trim();
+      const includeAudio = document.getElementById('keepAudio').checked;
+
+      // Note: Scene length and aspect ratio selectors removed per user request
+      const prompt = `GOOGLE FLOW / VEO VIDEO PROMPT — VILLAGE HARMONY
+
+SCENE / PLOT:
+${sceneInput}
+
+SCENE INTENT:
+Follow the scene exactly as the canonical plot beat. Preserve the story logic, character identity, location and time progression. Do not add unrelated events.
+
+CHARACTER CONSISTENCY LOCK:
+${char}
+
+BACKGROUND / WORLD CONSISTENCY LOCK:
+${bg}
+
+VISUAL STYLE / CAMERA LOCK:
+${visual}
+
+CONTINUITY REQUIREMENTS:
+- Keep exact recurring faces, ages, hairstyles, body proportions, clothing, colors, jewelry/accessories and footwear.
+- Keep the same village geography, architecture, landscape, recurring landmarks, season and atmosphere.
+- Preserve continuity of props, tools and ingredients from earlier scenes.
+- Actions must be physically plausible and logically follow the surrounding scenes.
+- Do not teleport, duplicate, redesign, replace or randomly age characters.
+- Keep natural hand, body and object interactions.
+- Use smooth cinematic camera movement and clear visual storytelling.
+- No text, logos or watermarks.
+
+COMPOSITION & PACING:
+Follow the shot composition, camera framing and duration designated for this scene in the master storyboard.
+Use a calm cinematic composition, readable subject placement, and natural depth of field.
+
+AUDIO / ASMR:
+${includeAudio ? (audio + (audioScene ? '\n\nSCENE-SPECIFIC AUDIO:\n' + audioScene : '')) : 'Prioritize appropriate natural ambience and keep music/dialogue minimal unless explicitly required by the scene.'}
+
+${SAFETY_LOCK}
+
+FINAL CONSISTENCY CHECK:
+The clip must look like the exact same Village Harmony world and recurring characters as the surrounding scenes. No visual, cultural, wardrobe, weather, lighting, prop or story contradictions. Keep the mood peaceful, warm, cheerful or quietly relaxing as appropriate for the scene and suitable for YouTube.`;
+
+      const out = document.getElementById('sceneOutput');
+      out.value = prompt;
+      document.getElementById('scene-char-count').textContent = `${prompt.length} chars`;
+      showToast('Google Flow prompt generated!');
+      out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function clearScene() {
+      document.getElementById('sceneInput').value = '';
+      document.getElementById('audioScene').value = '';
+      document.getElementById('sceneOutput').value = '';
+      document.getElementById('scene-char-count').textContent = '0 chars';
+      showToast('Scene cleared');
+    }
+
+    function loadExampleScene() {
+      document.getElementById('sceneInput').value = 'Gauri kneels beside the hillside vegetable patch and gently harvests fresh leafy greens into her woven basket. Aru watches with keen curiosity before offering her a freshly plucked ripe tomato. Raghav can be seen in the distant background repairing a bamboo fence under warm morning sunlight.';
+      document.getElementById('audioScene').value = 'Crisp vegetable stems snapping, soft woven wicker basket rustling, rhythmic light hammering in far background, cheerful morning birds in bamboo canopy, gentle mountain breeze.';
+      showToast('Example scene loaded');
+    }
+
+    function copyScenePrompt() {
+      const text = document.getElementById('sceneOutput').value;
+      if (!text) {
+        showToast('Generate a prompt first!', 'error');
+        return;
+      }
+      copyToClipboard(text, 'Scene prompt copied to clipboard!');
+      const btn = document.getElementById('copy-scene-btn');
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Copied!</span>`;
+        setTimeout(() => btn.innerHTML = orig, 1800);
+      }
+    }
+
+    function downloadScenePrompt() {
+      const text = document.getElementById('sceneOutput').value;
+      if (!text) {
+        showToast('Generate a prompt first!', 'error');
+        return;
+      }
+      downloadFile('village-harmony-flow-scene-prompt.txt', text);
+      showToast('Downloaded scene prompt .txt');
+    }
+
+    /* ==========================================================================
+       4. CONSISTENCY LOCKS: EDIT PROTECTION & RESET DEFAULTS
+       ========================================================================== */
+    function loadLocks() {
+      let saved = {};
+      try {
+        saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+      } catch (e) {}
+      
+      const config = { ...DEFAULT_LOCKS, ...saved };
+      
+      ['characterLock', 'backgroundLock', 'visualLock', 'audioLock'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.value = config[id] || DEFAULT_LOCKS[id] || '';
+          updateLockCharCount(id);
+          // Set to readonly by default
+          el.setAttribute('readonly', 'true');
+        }
+      });
+    }
+
+    function toggleEditLock(lockId) {
+      const ta = document.getElementById(lockId);
+      const btn = document.getElementById(`btn-edit-${lockId}`);
+      const badge = document.getElementById(`badge-${lockId}`);
+      if (!ta) return;
+
+      const isReadOnly = ta.hasAttribute('readonly');
+
+      if (isReadOnly) {
+        // Unlock to edit
+        ta.removeAttribute('readonly');
+        ta.classList.remove('bg-stone-100/80', 'dark:bg-stone-900/80', 'cursor-default');
+        ta.classList.add('bg-white', 'dark:bg-stone-900', 'ring-2', 'ring-brand-500/50', 'border-brand-500', 'cursor-text');
+        ta.focus();
+        
+        if (btn) {
+          btn.innerHTML = `<svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span class="text-emerald-700 dark:text-emerald-300 font-bold">Lock & Save</span>`;
+          btn.classList.add('bg-emerald-50', 'dark:bg-emerald-950/60', 'border-emerald-300', 'dark:border-emerald-700');
+        }
+        
+        if (badge) {
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span><span>Editing</span>`;
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1';
+        }
+        showToast('Edit mode enabled. Click "Lock & Save" when done.');
+      } else {
+        // Lock and save changes
+        ta.setAttribute('readonly', 'true');
+        ta.classList.add('bg-stone-100/80', 'dark:bg-stone-900/80', 'cursor-default');
+        ta.classList.remove('bg-white', 'dark:bg-stone-900', 'ring-2', 'ring-brand-500/50', 'border-brand-500', 'cursor-text');
+        
+        if (btn) {
+          btn.innerHTML = `<svg class="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg><span>Unlock / Edit</span>`;
+          btn.classList.remove('bg-emerald-50', 'dark:bg-emerald-950/60', 'border-emerald-300', 'dark:border-emerald-700');
+        }
+        
+        if (badge) {
+          badge.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg><span>Locked</span>`;
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1';
+        }
+        
+        saveLocksAuto();
+        showToast('Changes saved and lock re-engaged.');
+      }
+    }
+
+    function resetLockToDefault(lockId) {
+      if (DEFAULT_LOCKS[lockId]) {
+        const ta = document.getElementById(lockId);
+        ta.value = DEFAULT_LOCKS[lockId];
+        updateLockCharCount(lockId);
+        saveLocksAuto();
+        
+        // Ensure textarea remains/returns to locked state
+        if (!ta.hasAttribute('readonly')) {
+          toggleEditLock(lockId);
+        }
+        
+        const labelName = lockId === 'characterLock' ? 'Character' : lockId === 'backgroundLock' ? 'Background / World' : lockId === 'visualLock' ? 'Visual Style' : 'Audio ASMR';
+        showToast(`Reset ${labelName} Lock to canonical Village Harmony defaults!`);
+      }
+    }
+
+    function saveLocksAuto() {
+      const data = {
+        characterLock: document.getElementById('characterLock').value,
+        backgroundLock: document.getElementById('backgroundLock').value,
+        visualLock: document.getElementById('visualLock').value,
+        audioLock: document.getElementById('audioLock').value,
+      };
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+    }
+
+    function saveLocksManual() {
+      // Ensure all open editors are locked
+      ['characterLock', 'backgroundLock', 'visualLock', 'audioLock'].forEach(id => {
+        const ta = document.getElementById(id);
+        if (ta && !ta.hasAttribute('readonly')) {
+          toggleEditLock(id);
+        }
+      });
+      saveLocksAuto();
+      showToast('All consistency locks saved to browser storage');
+    }
+
+    function updateLockCharCount(id) {
+      const el = document.getElementById(id);
+      const countEl = document.getElementById(id === 'characterLock' ? 'charLockCount' : id === 'backgroundLock' ? 'bgLockCount' : id === 'visualLock' ? 'visualLockCount' : 'audioLockCount');
+      if (el && countEl) {
+        countEl.textContent = `${el.value.length} chars`;
+      }
+    }
+
+    // Debounced listener on textareas
+    ['characterLock', 'backgroundLock', 'visualLock', 'audioLock'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => {
+          saveLocksAuto();
+          updateLockCharCount(id);
+        });
+      }
+    });
+
+    function exportConfig() {
+      const config = {
+        version: 3,
+        channel: 'Village Harmony',
+        exportedAt: new Date().toISOString(),
+        targetDuration: currentDurationLength,
+        voiceMode: currentVoiceMode,
+        locks: {
+          characterLock: document.getElementById('characterLock').value,
+          backgroundLock: document.getElementById('backgroundLock').value,
+          visualLock: document.getElementById('visualLock').value,
+          audioLock: document.getElementById('audioLock').value
+        }
+      };
+      downloadFile('village-harmony-project-config.json', JSON.stringify(config, null, 2));
+      showToast('Exported project config JSON');
+    }
+
+    document.getElementById('configFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const config = JSON.parse(reader.result);
+          if (config.locks) {
+            ['characterLock', 'backgroundLock', 'visualLock', 'audioLock'].forEach(k => {
+              if (config.locks[k] !== undefined) {
+                document.getElementById(k).value = config.locks[k];
+                updateLockCharCount(k);
+              }
+            });
+          }
+          if (config.targetDuration) {
+            currentDurationLength = config.targetDuration;
+          }
+          if (config.voiceMode) {
+            currentVoiceMode = config.voiceMode;
+            const targetCard = document.querySelector(`.voice-option[onclick*="'${currentVoiceMode}'"]`);
+            if (targetCard) selectVoiceMode(currentVoiceMode, targetCard);
+          }
+          updateMasterPromptDisplay();
+          saveLocksAuto();
+          showToast('Project configuration imported successfully!');
+        } catch (err) {
+          showToast('Failed to parse JSON file', 'error');
+        }
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    });
+
+    /* ==========================================================================
+       5. INDEXEDDB FOR CUSTOM ASSETS
+       ========================================================================== */
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function getCustomAssets() {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function handleAddCustomAssets(e) {
+      const files = [...e.target.files].filter(f => f.type.startsWith('image/'));
+      if (!files.length) return;
+      
+      const db = await openDB();
+      for (const file of files) {
+        await new Promise((res, rej) => {
+          const tx = db.transaction(STORE_NAME, 'readwrite');
+          tx.objectStore(STORE_NAME).put({
+            id: crypto.randomUUID(),
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            created: Date.now(),
+            blob: file
+          });
+          tx.oncomplete = res;
+          tx.onerror = () => rej(tx.error);
+        });
+      }
+      e.target.value = '';
+      showToast(`Added ${files.length} custom asset${files.length > 1 ? 's' : ''}`);
+      renderCustomAssets();
+    }
+
+    async function renderCustomAssets() {
+      const box = document.getElementById('custom-asset-grid');
+      if (!box) return;
+      
+      const list = await getCustomAssets().catch(() => []);
+      box.innerHTML = '';
+      
+      if (!list.length) {
+        box.innerHTML = `
+          <div class="col-span-full py-8 text-center border border-dashed border-stone-300 dark:border-stone-700 rounded-xl text-stone-400 text-xs">
+            No custom assets uploaded yet. Use the uploader above to add custom location or character references.
+          </div>
+        `;
+        return;
+      }
+
+      list.sort((a, b) => b.created - a.created);
+      
+      list.forEach(item => {
+        const url = URL.createObjectURL(item.blob);
+        const card = document.createElement('div');
+        card.className = 'group relative rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/60 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between';
+        
+        card.innerHTML = `
+          <div class="relative bg-stone-100 dark:bg-stone-900 aspect-[4/3] overflow-hidden cursor-pointer" onclick="openModal('${url}', '${escapeHtml(item.name)}', 'Custom reference image (${formatBytes(item.size)})')">
+            <img src="${url}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="px-3 py-1 bg-white/90 text-stone-900 text-xs font-bold rounded-lg shadow">View Full</span>
+            </div>
+            <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-800 text-white shadow">Custom Reference</span>
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-display font-bold text-sm text-stone-900 dark:text-stone-100 truncate" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h3>
+              <div class="mt-2 text-[11px] text-stone-400 font-mono">${formatBytes(item.size)} • ${item.type || 'image'}</div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-stone-100 dark:border-stone-700/60 flex items-center gap-1.5">
+              <button onclick="downloadCustomAsset('${item.id}')" class="flex-1 py-1.5 text-center text-xs font-semibold rounded-lg bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors">Download</button>
+              <button onclick="deleteCustomAsset('${item.id}')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 transition-colors">Delete</button>
+            </div>
+          </div>
+        `;
+        box.appendChild(card);
+      });
+    }
+
+    async function downloadCustomAsset(id) {
+      const list = await getCustomAssets();
+      const item = list.find(x => x.id === id);
+      if (!item) return;
+      const url = URL.createObjectURL(item.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = item.name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(`Downloading ${item.name}`);
+    }
+
+    async function deleteCustomAsset(id) {
+      const db = await openDB();
+      await new Promise((res, rej) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(id);
+        tx.oncomplete = res;
+        tx.onerror = () => rej(tx.error);
+      });
+      showToast('Custom asset deleted');
+      renderCustomAssets();
+    }
+
+    function copyImageUrlToClipboard(path) {
+      copyToClipboard(path, 'Relative asset path copied!');
+    }
+
+    /* ==========================================================================
+       6. UI UTILITIES, MODAL & TABS
+       ========================================================================== */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const activeContent = document.getElementById(`tab-${tabId}`);
+      if (activeContent) activeContent.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('bg-white', 'dark:bg-stone-700', 'text-stone-900', 'dark:text-white', 'shadow-sm');
+        btn.classList.add('text-stone-600', 'dark:text-stone-400');
+      });
+
+      const activeBtn = document.querySelector(`[data-tab-btn="${tabId}"]`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-stone-600', 'dark:text-stone-400');
+        activeBtn.classList.add('bg-white', 'dark:bg-stone-700', 'text-stone-900', 'dark:text-white', 'shadow-sm');
+      }
+
+      if (tabId === 'assets') {
+        renderCustomAssets();
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('villageTheme', isDark ? 'dark' : 'light');
+      updateThemeIcons(isDark);
+    }
+
+    function updateThemeIcons(isDark) {
+      const darkIcon = document.getElementById('theme-icon-dark');
+      const lightIcon = document.getElementById('theme-icon-light');
+      if (isDark) {
+        darkIcon.classList.remove('hidden');
+        lightIcon.classList.add('hidden');
+      } else {
+        darkIcon.classList.add('hidden');
+        lightIcon.classList.remove('hidden');
+      }
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem('villageTheme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = saved === 'dark' || (!saved && prefersDark);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      updateThemeIcons(isDark);
+    }
+
+    function openModal(src, title, desc) {
+      const modal = document.getElementById('image-modal');
+      document.getElementById('modal-img').src = src;
+      document.getElementById('modal-title').textContent = title || '';
+      document.getElementById('modal-desc').textContent = desc || '';
+      document.getElementById('modal-download').href = src;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('image-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    document.getElementById('image-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'image-modal') closeModal();
+    });
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold text-white flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto ${type === 'error' ? 'bg-red-600' : 'bg-stone-900 dark:bg-stone-100 dark:text-stone-900 border border-stone-700/50'}`;
+      
+      const icon = type === 'error' 
+        ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+        : '<svg class="w-4 h-4 text-emerald-400 dark:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        
+      toast.innerHTML = `${icon}<span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+
+    function copyToClipboard(text, successMsg = 'Copied to clipboard!') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(successMsg);
+        }).catch(() => fallbackCopy(text, successMsg));
+      } else {
+        fallbackCopy(text, successMsg);
+      }
+    }
+
+    function fallbackCopy(text, successMsg) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch (err) {
+        showToast('Unable to copy', 'error');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function downloadFile(name, content) {
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return '0 B';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(2) + ' MB';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[m]));
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      loadLocks();
+      try {
+        const savedOutfit = localStorage.getItem(GAURI_OUTFIT_KEY);
+        if (GAURI_OUTFITS.some(o => o.id === savedOutfit)) currentGauriOutfit = savedOutfit;
+      } catch (e) {}
+      renderGauriOutfits();
+      updateMasterPromptDisplay();
+      renderCustomAssets();
+    });
+  </script>
+</body>
+</html>
