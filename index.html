@@ -375,6 +375,29 @@
         </div>
       </section>
 
+      <!-- Art Style Selector Card -->
+      <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold text-sm">🎨</span>
+              <h2 class="text-lg font-display font-bold text-stone-900 dark:text-stone-100">
+                Art Style
+              </h2>
+            </div>
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              Choose the visual style. The master prompt, Character Lock and Visual Style Lock all switch to match.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 rounded-lg border border-sky-200/80 dark:border-sky-800/60 self-start md:self-auto">
+            <span id="active-style-badge" class="font-bold">Active: 2D Hand-Painted Storybook</span>
+          </div>
+        </div>
+
+        <!-- Art Style Options Grid (rendered by renderArtStyles) -->
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="art-style-grid"></div>
+      </section>
+
       <!-- Gauri Outfit Selector Card -->
       <section class="glass-card rounded-2xl border border-stone-200/80 dark:border-stone-800 p-6 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-stone-200/80 dark:border-stone-800">
@@ -434,6 +457,8 @@
               <span id="master-length-tag" class="text-brand-400 font-semibold">Duration: 3–5 minutes</span>
               <span class="text-stone-600 dark:text-stone-600">•</span>
               <span id="master-voice-tag" class="text-emerald-400 font-semibold">Voice: Pure ASMR</span>
+              <span class="text-stone-600 dark:text-stone-600">•</span>
+              <span id="master-style-tag" class="text-sky-400 font-semibold">Style: 2D Storybook</span>
               <span class="text-stone-600 dark:text-stone-600">•</span>
               <span id="master-outfit-tag" class="text-rose-400 font-semibold">Gauri: Original</span>
               <span id="master-char-count">0 chars</span>
@@ -725,7 +750,7 @@
               </div>
             </div>
             <div class="mt-2.5 text-[11px] text-stone-400 flex items-center justify-between">
-              <span>2D hand-painted storybook cartoon, clean outlines, warm lighting.</span>
+              <span id="visualLockHint">2D hand-painted storybook cartoon, clean outlines, warm lighting.</span>
               <span id="visualLockCount">0 chars</span>
             </div>
           </div>
@@ -1117,11 +1142,12 @@ village-harmony-prompt-studio/
     /* ==========================================================================
        1. CONSTANTS & EXACT MASTER PROMPT (FOR VILLAGE HARMONY YOUTUBE CHANNEL)
        ========================================================================== */
-    const MASTER_PROMPT_CORE = `You are the master story director and Google Flow/Veo prompt writer for the YouTube channel “Village Harmony,” which creates peaceful cinematic animated stories about Indian/South Asian village family life.
+    // Builds the master prompt for the chosen art style (see ART_STYLES); only the style-specific lines differ
+    const buildMasterPromptCore = (style) => `You are the master story director and Google Flow/Veo prompt writer for the YouTube channel “Village Harmony,” which creates peaceful cinematic animated stories about Indian/South Asian village family life.
 
 CHANNEL & CANONICAL IDENTITY:
 Village Harmony is a single, continuous cinematic universe focusing on a fixed recurring family and their peaceful hill-village life:
-- Art Style (applies to every character and place): 2D hand-painted storybook cartoon, matching the channel reference art. Clean soft dark-brown outlines, smooth cel shading with gentle painterly gradients, large expressive dark eyes, soft rounded facial features, simple clean shapes, simplified flat-colored clothing patterns. Never photorealistic, never live-action, never 3D CGI.
+- Art Style (applies to every character and place): ${style.artStyleLine}
 - Gauri (Mother / Homemaker & Harvest): Early 30s, medium-brown skin, gentle oval face, dark almond eyes, center-parted long black hair tied into a low bun, small red bindi, gold earrings, thin gold necklace, red/gold bangles, peach-pink floral cotton saree. Gentle, caring and hardworking.
 - Raghav (Father / Village Craftsman & Farmer): Mid 30s, medium-brown skin, short thick black hair, neatly trimmed full black beard and mustache, dark brown eyes, off-white cotton kurta, dark-brown dhoti/pajama, brown sandals. Calm, patient and hardworking.
 - Aru (Son / 7-Year-Old Explorer): 7-year-old boy, medium-brown skin, round innocent face, large dark-brown eyes, short slightly messy black hair, light sky-blue T-shirt, dark-green shorts, brown sandals. Playful, curious and affectionate.
@@ -1144,7 +1170,7 @@ F) Continuity rules and recurring props
 G) YouTube-safe content rules
 
 CHARACTER CONSISTENCY:
-Give every recurring character a fixed identity. Lock art style (2D storybook cartoon), age, skin tone, face shape, eyes, hairstyle, body proportions, clothing colors/materials, jewelry/accessories, footwear and personality.
+Give every recurring character a fixed identity. Lock art style (${style.lockToken}), age, skin tone, face shape, eyes, hairstyle, body proportions, clothing colors/materials, jewelry/accessories, footwear and personality.
 Once established, these details must never change unless the user explicitly asks for a redesign.
 Never randomly change clothing, hairstyle, age, face, body proportions or accessories between scenes. Characters must remain visually recognizable from scene to scene.
 
@@ -1155,7 +1181,7 @@ Keep season, weather, architecture, vegetation, lighting logic and overall atmos
 A place must still look like the same place when revisited from a different camera angle.
 
 VISUAL STYLE:
-2D hand-painted storybook cartoon illustration style, like a warm Indian picture book brought to life; clean soft dark-brown outlines; smooth cel shading with gentle painterly gradients; warm earthy color palette; soft watercolor-textured backgrounds with gently blurred depth; slightly stylized cartoon characters with large expressive dark eyes, soft rounded facial features and simple clean shapes; simple flat-colored clothing with light folds and simplified patterns; warm golden natural lighting; smooth, gentle 2D animation of cloth, hair, foliage and water; cinematic framing and smooth camera motion; coherent geography; no photorealism, no live-action look, no realistic skin texture, no 3D CGI rendering; no modern urban elements unless required by the outline.
+${style.visualStyle}
 Use calm, readable compositions and purposeful camera movement.
 
 STORY LOGIC:
@@ -1184,7 +1210,7 @@ For EVERY SCENE provide:
    SCENE / PLOT: [Specific shot beat]
    CHARACTER CONSISTENCY LOCK: [Extract exact locked descriptions of characters present in this scene]
    BACKGROUND / WORLD CONSISTENCY LOCK: [Specific village location details]
-   VISUAL STYLE / CAMERA LOCK: [2D hand-painted storybook cartoon style, lighting, camera framing and duration]
+   VISUAL STYLE / CAMERA LOCK: [${style.sceneLockHint}]
    AUDIO / ASMR: [Specific Foley, voice script cue, and natural sounds]
    YOUTUBE-SAFE CONTENT LOCK: [Standard safety rules]
    \`\`\`
@@ -1225,8 +1251,36 @@ OUTPUT ORDER:
 
 Make the result warm, visually rich, peaceful, logically connected and directly usable for Google Flow/Veo scene generation.`;
 
+    // Art style options. '2d' is the default; '3d' restores the original cinematic 3D wording.
+    // Each entry supplies the style-specific master prompt lines plus the Character / Visual Style lock text.
+    const ART_STYLES = [
+      { id: '2d', name: '2D Hand-Painted Storybook', short: '2D Storybook', emoji: '🖌️', isDefault: true,
+        blurb: 'Warm Indian picture-book cartoon: clean soft outlines, cel shading, watercolor backgrounds, large expressive eyes. Matches the channel reference art.',
+        tagline: 'Storybook cartoon look',
+        artStyleLine: '2D hand-painted storybook cartoon, matching the channel reference art. Clean soft dark-brown outlines, smooth cel shading with gentle painterly gradients, large expressive dark eyes, soft rounded facial features, simple clean shapes, simplified flat-colored clothing patterns. Never photorealistic, never live-action, never 3D CGI.',
+        lockToken: '2D storybook cartoon',
+        visualStyle: '2D hand-painted storybook cartoon illustration style, like a warm Indian picture book brought to life; clean soft dark-brown outlines; smooth cel shading with gentle painterly gradients; warm earthy color palette; soft watercolor-textured backgrounds with gently blurred depth; slightly stylized cartoon characters with large expressive dark eyes, soft rounded facial features and simple clean shapes; simple flat-colored clothing with light folds and simplified patterns; warm golden natural lighting; smooth, gentle 2D animation of cloth, hair, foliage and water; cinematic framing and smooth camera motion; coherent geography; no photorealism, no live-action look, no realistic skin texture, no 3D CGI rendering; no modern urban elements unless required by the outline.',
+        sceneLockHint: '2D hand-painted storybook cartoon style, lighting, camera framing and duration',
+        characterLine: 'Draw every character in the same 2D hand-painted storybook cartoon style: clean soft outlines, smooth cel shading, large expressive eyes, soft rounded features, simplified clothing patterns. Never photorealistic or 3D CGI.',
+        visualLock: `VISUAL STYLE LOCK:
+2D hand-painted storybook cartoon of Indian/South Asian rural family life. Clean soft dark-brown outlines, smooth cel shading with gentle painterly gradients, warm earthy palette, soft watercolor-textured backgrounds, large expressive eyes and soft rounded cartoon features, simplified flat-colored clothing, warm golden natural lighting, gentle 2D animation of cloth, hair, foliage and water, smooth camera movement, coherent geography. No photorealism, no live-action look, no 3D CGI rendering, no modern urban elements.`,
+        lockHint: '2D hand-painted storybook cartoon, clean outlines, warm lighting.' },
+      { id: '3d', name: '3D Cinematic Animation', short: '3D Cinematic', emoji: '🎬',
+        blurb: 'High-quality cinematic 3D animated family film: soft painterly textures, natural cloth, hair and foliage motion, cinematic depth of field.',
+        tagline: 'Animated feature-film look',
+        artStyleLine: 'High-quality stylized cinematic 3D animated family film. Soft painterly textures, warm natural lighting, expressive but natural facial animation, natural proportions, realistic cloth, hair and foliage movement, cinematic depth of field. Consistent stylized 3D look; never live-action, never photorealistic skin.',
+        lockToken: 'stylized 3D animation',
+        visualStyle: 'High-quality cinematic 3D animated Indian/South Asian rural family-film aesthetics; soft painterly textures; warm natural lighting; realistic cloth, hair, foliage and environmental movement; expressive but natural facial animation; cinematic depth of field; smooth camera motion; coherent geography; natural proportions; no modern urban elements unless required by the outline.',
+        sceneLockHint: 'Cinematic 3D animation, lighting, camera framing and duration',
+        characterLine: 'Render every character in the same stylized cinematic 3D animation style: soft painterly textures, expressive but natural faces, natural proportions, realistic cloth and hair movement. Never live-action or photorealistic.',
+        visualLock: `VISUAL STYLE LOCK:
+High-quality cinematic 3D animated Indian/South Asian rural family film. Soft painterly textures, warm natural lighting, realistic cloth, hair, foliage and environmental movement, expressive but natural facial animation, cinematic depth of field, smooth camera movement, natural proportions, coherent geography, no modern urban elements.`,
+        lockHint: 'Soft painterly 3D animation, warm lighting, cinematic depth.' }
+    ];
+    const ART_STYLE_KEY = 'villageHarmonyArtStyle';
+
     // Gauri saree variations (from Village_Harmony_Master_Prompt_Gauri_Versions.pdf).
-    // Only the saree text in Gauri's line differs between versions; 'original' matches MASTER_PROMPT_CORE as written.
+    // Only the saree text in Gauri's line differs between versions; 'original' matches buildMasterPromptCore() as written.
     const GAURI_ORIGINAL_SAREE = 'peach-pink floral cotton saree';
     const GAURI_OUTFITS = [
       { id: 'sage-mustard', version: 1, name: 'Sage Green + Mustard', short: 'Sage + Mustard',
@@ -1258,12 +1312,11 @@ Keep the scene family-friendly and non-graphic. Do not add violence, blood, gore
 Gauri (Mother) — early 30s, medium-brown skin, gentle oval face, dark almond eyes, center-parted long black hair tied into a low bun, small red bindi, gold earrings, thin gold necklace, red/gold bangles, peach-pink floral cotton saree. Gentle, caring and hardworking.
 Raghav (Father) — mid 30s, medium-brown skin, short thick black hair, neatly trimmed full black beard and mustache, dark brown eyes, off-white cotton kurta, dark-brown dhoti/pajama, brown sandals. Calm, patient and hardworking.
 Aru (Son) — 7-year-old boy, medium-brown skin, round innocent face, large dark-brown eyes, short slightly messy black hair, light sky-blue T-shirt, dark-green shorts, brown sandals. Playful, curious and affectionate.
-Draw every character in the same 2D hand-painted storybook cartoon style: clean soft outlines, smooth cel shading, large expressive eyes, soft rounded features, simplified clothing patterns. Never photorealistic or 3D CGI.
+${ART_STYLES[0].characterLine}
 Keep exact faces, hairstyles, clothing, jewelry, ages and body proportions in every scene.`,
       backgroundLock: `BACKGROUND / WORLD CONSISTENCY LOCK:
 Peaceful tropical South Asian hill village in spring. Mud houses with thatched roofs, bamboo fences, stone paths, green hills, coconut/banana/betel-nut trees, wild grass, vegetable gardens, flowing clear stream and distant misty hills. Keep the same family home, nearby garden, hillside patch, stream and paths in consistent relative positions. Warm natural sunlight, soft haze, traditional baskets, clay pots and woven mats. No modern urban elements.`,
-      visualLock: `VISUAL STYLE LOCK:
-2D hand-painted storybook cartoon of Indian/South Asian rural family life. Clean soft dark-brown outlines, smooth cel shading with gentle painterly gradients, warm earthy palette, soft watercolor-textured backgrounds, large expressive eyes and soft rounded cartoon features, simplified flat-colored clothing, warm golden natural lighting, gentle 2D animation of cloth, hair, foliage and water, smooth camera movement, coherent geography. No photorealism, no live-action look, no 3D CGI rendering, no modern urban elements.`,
+      visualLock: ART_STYLES[0].visualLock,
       audioLock: `AUDIO / ASMR LOCK:
 Naturalistic immersive rural ASMR. Soft realistic environmental sounds. Close detailed Foley matching visible actions. Peaceful and soothing. Crisp nearby birds, flowing river, gentle wind, leaves, insects and subtle village ambience when appropriate. No loud music, exaggerated sound effects or sudden volume changes. Some scenes may be mostly natural ambience with little or no music.`
     };
@@ -1276,6 +1329,7 @@ Naturalistic immersive rural ASMR. Soft realistic environmental sounds. Close de
     let currentDurationLength = '3–5 minutes';
     let currentVoiceMode = 'asmr'; // 'asmr' | 'bangla' | 'hindi' | 'english'
     let currentGauriOutfit = 'original'; // id from GAURI_OUTFITS
+    let currentArtStyle = '2d'; // id from ART_STYLES
 
     const VOICE_PROMPT_INSTRUCTIONS = {
       asmr: `VOICE & AUDIO MODE: PURE NATURAL ASMR (NO SPOKEN DIALOGUE / VOICEOVER)
@@ -1306,7 +1360,8 @@ Naturalistic immersive rural ASMR. Soft realistic environmental sounds. Close de
       const durationHeader = `TARGET TOTAL STORY DURATION: ${currentDurationLength}\n(Budget the scene breakdown and individual scene clip lengths to achieve this total overall video duration.)\n\n`;
       const voiceHeader = `${VOICE_PROMPT_INSTRUCTIONS[currentVoiceMode]}\n\n`;
       const outfit = getGauriOutfit();
-      const fullPrompt = durationHeader + voiceHeader + MASTER_PROMPT_CORE.replace(GAURI_ORIGINAL_SAREE, outfit.saree);
+      const style = getArtStyle();
+      const fullPrompt = durationHeader + voiceHeader + buildMasterPromptCore(style).replace(GAURI_ORIGINAL_SAREE, outfit.saree);
       
       const el = document.getElementById('masterPrompt');
       if (el) {
@@ -1339,6 +1394,92 @@ Naturalistic immersive rural ASMR. Soft realistic environmental sounds. Close de
       if (lockLabel) lockLabel.textContent = `V${outfit.version} ${outfit.name}`;
       const lockFooter = document.getElementById('lock-outfit-footer');
       if (lockFooter) lockFooter.textContent = `V${outfit.version} ${outfit.short}`;
+
+      const styleTag = document.getElementById('master-style-tag');
+      if (styleTag) styleTag.textContent = `Style: ${style.short}`;
+      const styleBadge = document.getElementById('active-style-badge');
+      if (styleBadge) styleBadge.textContent = `Active: ${style.name}`;
+      const visualHint = document.getElementById('visualLockHint');
+      if (visualHint) visualHint.textContent = style.lockHint;
+    }
+
+    function getArtStyle() {
+      return ART_STYLES.find(s => s.id === currentArtStyle) || ART_STYLES[0];
+    }
+
+    function renderArtStyles() {
+      const grid = document.getElementById('art-style-grid');
+      if (!grid) return;
+      grid.innerHTML = ART_STYLES.map(s => {
+        const active = s.id === currentArtStyle;
+        return `
+          <div onclick="selectArtStyle('${s.id}')" data-style-id="${s.id}" class="art-style-option group cursor-pointer p-4 rounded-xl border-2 hover:border-brand-500/60 transition-all flex flex-col justify-between ${active
+            ? 'active border-brand-500 bg-brand-50/50 dark:bg-brand-950/30 ring-2 ring-brand-500/20 shadow-sm'
+            : 'border-stone-200 dark:border-stone-800 bg-white/60 dark:bg-stone-800/40'}">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xl">${s.emoji}</span>
+                ${s.isDefault ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-500 text-white">Default</span>' : ''}
+              </div>
+              <div class="mt-3 text-sm font-bold text-stone-900 dark:text-white">${s.name}</div>
+              <p class="mt-1 text-xs text-stone-500 dark:text-stone-400 leading-relaxed">${s.blurb}</p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-stone-200 dark:border-stone-800 text-[11px] font-semibold ${active ? 'text-brand-700 dark:text-brand-300' : 'text-stone-500 dark:text-stone-400'}">${s.tagline}</div>
+          </div>`;
+      }).join('');
+    }
+
+    // Switches the art style for the Master Prompt and keeps the Character / Visual Style locks in step
+    function selectArtStyle(id, { silent = false } = {}) {
+      if (!ART_STYLES.some(s => s.id === id)) return;
+      currentArtStyle = id;
+      try { localStorage.setItem(ART_STYLE_KEY, id); } catch (e) {}
+
+      renderArtStyles();
+      updateMasterPromptDisplay();
+      syncLocksArtStyle({ silent });
+      if (!silent) showToast(`Art style set to ${getArtStyle().name}. Master Prompt and locks updated`);
+    }
+
+    // Puts the selected style's line into a Character Lock text (replacing any other style's line)
+    function applyArtStyleToCharacterLock(text) {
+      const style = getArtStyle();
+      const existing = ART_STYLES.find(s => text.includes(s.characterLine));
+      if (existing) return text.replace(existing.characterLine, style.characterLine);
+      return /^Keep exact faces/m.test(text)
+        ? text.replace(/^Keep exact faces/m, `${style.characterLine}\nKeep exact faces`)
+        : `${text}\n${style.characterLine}`;
+    }
+
+    function syncLocksArtStyle({ silent = false } = {}) {
+      const style = getArtStyle();
+      let changed = false;
+
+      const charTa = document.getElementById('characterLock');
+      if (charTa && charTa.value.trim()) {
+        const updated = applyArtStyleToCharacterLock(charTa.value);
+        if (updated !== charTa.value) {
+          charTa.value = updated;
+          updateLockCharCount('characterLock');
+          changed = true;
+        }
+      }
+
+      const visualTa = document.getElementById('visualLock');
+      if (visualTa) {
+        const current = visualTa.value.trim();
+        if (!current || ART_STYLES.some(s => s.visualLock === current)) {
+          if (current !== style.visualLock) {
+            visualTa.value = style.visualLock;
+            updateLockCharCount('visualLock');
+            changed = true;
+          }
+        } else if (!silent) {
+          showToast('Visual Style lock is customized. Reset it to apply the new style', 'error');
+        }
+      }
+
+      if (changed) saveLocksAuto();
     }
 
     function getGauriOutfit() {
@@ -1614,8 +1755,11 @@ The clip must look like the exact same Village Harmony world and recurring chara
        ========================================================================== */
     // Default lock text; the character lock uses the currently selected Gauri outfit
     function getDefaultLock(id) {
+      if (id === 'visualLock') return getArtStyle().visualLock;
       const text = DEFAULT_LOCKS[id] || '';
-      return id === 'characterLock' ? text.replace(GAURI_ORIGINAL_SAREE, getGauriOutfit().saree) : text;
+      return id === 'characterLock'
+        ? applyArtStyleToCharacterLock(text.replace(GAURI_ORIGINAL_SAREE, getGauriOutfit().saree))
+        : text;
     }
 
     function loadLocks() {
@@ -1625,14 +1769,13 @@ The clip must look like the exact same Village Harmony world and recurring chara
       } catch (e) {}
 
       // Upgrade locks saved before the 2D storybook cartoon style lock (they pushed generations toward realism)
-      if (saved.visualLock && saved.visualLock.includes('High-quality cinematic 3D animated')) {
+      // (Skipped in 3D mode, where that wording is the intended style.)
+      if (currentArtStyle !== '3d' && saved.visualLock && saved.visualLock.includes('High-quality cinematic 3D animated')) {
         delete saved.visualLock;
       }
-      if (saved.characterLock && !saved.characterLock.includes('storybook cartoon')) {
-        const styleLine = DEFAULT_LOCKS.characterLock.split('\n').find(l => l.startsWith('Draw every character'));
-        saved.characterLock = saved.characterLock.includes('Keep exact faces')
-          ? saved.characterLock.replace(/^Keep exact faces/m, `${styleLine}\nKeep exact faces`)
-          : `${saved.characterLock}\n${styleLine}`;
+      // Older character locks have no art style line; add the one for the selected style
+      if (saved.characterLock && !ART_STYLES.some(s => saved.characterLock.includes(s.characterLine))) {
+        saved.characterLock = applyArtStyleToCharacterLock(saved.characterLock);
       }
 
       ['characterLock', 'backgroundLock', 'visualLock', 'audioLock'].forEach(id => {
@@ -1758,6 +1901,7 @@ The clip must look like the exact same Village Harmony world and recurring chara
         targetDuration: currentDurationLength,
         voiceMode: currentVoiceMode,
         gauriOutfit: currentGauriOutfit,
+        artStyle: currentArtStyle,
         locks: {
           characterLock: document.getElementById('characterLock').value,
           backgroundLock: document.getElementById('backgroundLock').value,
@@ -1797,6 +1941,7 @@ The clip must look like the exact same Village Harmony world and recurring chara
             ? config.gauriOutfit
             : (detectGauriOutfit(document.getElementById('characterLock').value) || {}).id;
           if (importedOutfit) selectGauriOutfit(importedOutfit, { silent: true });
+          if (ART_STYLES.some(s => s.id === config.artStyle)) selectArtStyle(config.artStyle, { silent: true });
           updateMasterPromptDisplay();
           saveLocksAuto();
           showToast('Project configuration imported successfully!');
@@ -2091,9 +2236,13 @@ The clip must look like the exact same Village Harmony world and recurring chara
       try {
         const savedOutfit = localStorage.getItem(GAURI_OUTFIT_KEY);
         if (GAURI_OUTFITS.some(o => o.id === savedOutfit)) currentGauriOutfit = savedOutfit;
+        const savedStyle = localStorage.getItem(ART_STYLE_KEY);
+        if (ART_STYLES.some(s => s.id === savedStyle)) currentArtStyle = savedStyle;
       } catch (e) {}
       loadLocks();
       syncCharacterLockOutfit({ silent: true });
+      syncLocksArtStyle({ silent: true });
+      renderArtStyles();
       renderGauriOutfits();
       updateMasterPromptDisplay();
       renderCustomAssets();
